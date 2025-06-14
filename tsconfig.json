@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "rootDir": "impulse",
+    "target": "ES6",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "esModuleInterop": true,
+    "allowJs": true,
+    "sourceMap": true,
+    "strict": true,
+    "skipLibCheck": true
+  },
+  "include": [
+    "impulse/**/*.ts"
+  ]
+}

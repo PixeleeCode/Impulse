@@ -1,0 +1,40 @@
+{
+    "name": "pixelee/impulse",
+    "description": "Impulse est une micro librairie PHP pour créer des composants dynamiques sans écrire de Javascript, inspiré de Vue3 Composition API et Livewire.",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Impulse\\": "src/"
+        },
+        "exclude-from-classmap": [
+          "/tests/"
+        ]
+    },
+    "authors": [
+        {
+            "name": "Guillaume Bouyer",
+            "email": "guillaume.bouyer@icloud.com"
+        }
+    ],
+    "minimum-stability": "stable",
+  "require": {
+    "php": ">=8.2",
+    "ext-libxml": "*",
+    "ext-dom": "*"
+  },
+  "require-dev": {
+    "roave/security-advisories": "dev-latest",
+    "phpunit/phpunit": "^12.2.1"
+  },
+  "scripts": {
+    "post-install-cmd": [
+      "php -r \"if (!file_exists('public/impulse.js')) symlink('../vendor/pixeleecode/impulse/public/impulse.js', 'public/impulse.js');\"",
+      "php -r \"if (!file_exists('public/impulse.php')) symlink('../vendor/pixeleecode/impulse/public/impulse.php', 'public/impulse.php');\""
+    ],
+    "post-update-cmd": [
+      "php -r \"if (!file_exists('public/impulse.js')) symlink('../vendor/pixeleecode/impulse/public/impulse.js', 'public/impulse.js');\"",
+      "php -r \"if (!file_exists('public/impulse.php')) symlink('../vendor/pixeleecode/impulse/public/impulse.php', 'public/impulse.php');\""
+    ]
+  }
+}
