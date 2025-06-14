@@ -32,6 +32,7 @@ final class HelloUser extends Component
         $this->state('name', '');
     }
     
+    #[ImpulseAction]
     public function setName(string $name): void
     {
         $this->name = $name;

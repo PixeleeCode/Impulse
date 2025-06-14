@@ -188,7 +188,7 @@ use Impulse\ImpulseFactory;
 use MyComponents\Counter;
 
 $counter = ImpulseFactory::create(Counter::class, ['count' => 10]); // valeur initiale 10
-echo $counter->render(); // ⚠️ toujours utiliser render(), pas template()
+echo $counter->render(); // ⚠️ Toujours utiliser render(), pas template()
 ```
 > Le tableau passé en second paramètre permet de fixer des valeurs par défaut (état initial).
 ---
