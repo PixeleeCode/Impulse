@@ -67,14 +67,14 @@ final class HelloUser extends Component
 
 ### 1. Installer la librairie :
 ```bash
-composer require pixeleecode/impulse
+composer require pixelee/impulse
 ```
 
 ### 2. Ajoute les fichiers publics JS/CSS dans ton dossier public
 Créez des liens symboliques du JS et du endpoint `impulse.php` dans votre dossier public :
 ```bash
-ln -s ../vendor/pixeleecode/impulse/public/impulse.js public/impulse.js
-ln -s ../vendor/pixeleecode/impulse/public/impulse.php public/impulse.php
+ln -s ../vendor/pixelee/impulse/public/impulse.js public/impulse.js
+ln -s ../vendor/pixelee/impulse/public/impulse.php public/impulse.php
 ````
 
 > Astuce : Ce lien symbolique vous permet de profiter automatiquement des mises à jour via composer update,

@@ -14,7 +14,7 @@
     "authors": [
         {
             "name": "Guillaume Bouyer",
-            "email": "guillaume.bouyer@icloud.com"
+            "email": "pixelee.impulse@icloud.com"
         }
     ],
     "minimum-stability": "stable",
@@ -29,12 +29,12 @@
   },
   "scripts": {
     "post-install-cmd": [
-      "php -r \"if (!file_exists('public/impulse.js')) symlink('../vendor/pixeleecode/impulse/public/impulse.js', 'public/impulse.js');\"",
-      "php -r \"if (!file_exists('public/impulse.php')) symlink('../vendor/pixeleecode/impulse/public/impulse.php', 'public/impulse.php');\""
+      "php -r \"if (!file_exists('public/impulse.js')) symlink('../vendor/pixelee/impulse/public/impulse.js', 'public/impulse.js');\"",
+      "php -r \"if (!file_exists('public/impulse.php')) symlink('../vendor/pixelee/impulse/public/impulse.php', 'public/impulse.php');\""
     ],
     "post-update-cmd": [
-      "php -r \"if (!file_exists('public/impulse.js')) symlink('../vendor/pixeleecode/impulse/public/impulse.js', 'public/impulse.js');\"",
-      "php -r \"if (!file_exists('public/impulse.php')) symlink('../vendor/pixeleecode/impulse/public/impulse.php', 'public/impulse.php');\""
+      "php -r \"if (!file_exists('public/impulse.js')) symlink('../vendor/pixelee/impulse/public/impulse.js', 'public/impulse.js');\"",
+      "php -r \"if (!file_exists('public/impulse.php')) symlink('../vendor/pixelee/impulse/public/impulse.php', 'public/impulse.php');\""
     ]
   }
 }
