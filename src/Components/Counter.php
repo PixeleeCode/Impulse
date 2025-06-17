@@ -2,7 +2,7 @@
 
 namespace Impulse\Components;
 
-use Impulse\Attributes\ImpulseAction;
+use Impulse\Attributes\Action;
 use Impulse\Core\Component;
 
 /**
@@ -18,13 +18,13 @@ final class Counter extends Component
         //$this->methods->register('reset', fn() => $count->set(0));
     }
 
-    #[ImpulseAction]
+    #[Action]
     public function increment(): void
     {
         ++$this->count;
     }
 
-    #[ImpulseAction]
+    #[Action]
     public function reset(): void
     {
         $this->count = 0;

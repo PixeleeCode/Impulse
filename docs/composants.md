@@ -51,13 +51,13 @@ class Counter extends Component
         $this->state('count', 0);
     }
 
-    #[ImpulseAction]
+    #[Action]
     public function increment(): void
     {
         $this->count += + 1;
     }
 
-    #[ImpulseAction]
+    #[Action]
     public function reset(): void
     {
         $this->count = 0;
@@ -95,17 +95,17 @@ L’état est automatiquement persistant : la valeur est retenue entre deux acti
 
 ### 3. Enregistrer les méthodes/actions
 
-Créer autant de méthodes publiques que tu as besoin toutes surmontées de l'attribut PHP `#[ImpulseAction]`.  
+Créer autant de méthodes publiques que tu as besoin toutes surmontées de l'attribut PHP `#[Action]`.  
 **Sans cet attribut, elles ne seront pas exposées et donc non utilisable par le composant.**
 
 ```php
-#[ImpulseAction]
+#[Action]
 public function increment(): void
 {
     $this->count += 1;
 }
 
-#[ImpulseAction]
+#[Action]
 public function reset(): void
 {
     $this->count = 0;
@@ -138,7 +138,7 @@ Crée le HTML de ton composant :
 
 ### Enregistrer une action
 ```php
-#[ImpulseAction]
+#[Action]
 public function setName(string $name): void
 {
     $this->name = $name;
@@ -163,7 +163,7 @@ Tu peux envoyer des valeurs :
 ```
 Et dans le PHP du composant :
 ```php
-#[ImpulseAction]
+#[Action]
 public function increment(int $number): void
 {
     $this->count += $number;

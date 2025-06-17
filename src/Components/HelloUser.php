@@ -4,6 +4,9 @@ namespace Impulse\Components;
 
 use Impulse\Core\Component;
 
+/**
+ * @property string $name
+ */
 class HelloUser extends Component
 {
     public function setup(): void
@@ -65,21 +68,25 @@ class HelloUser extends Component
     {
         $name = htmlspecialchars($this->name ?: '');
 
-        return <<<HTML
+        /*return <<< HTML
             <div>
-                <input type="text" 
-                       name="name" 
-                       impulse:input="setName" 
-                       impulse:update="preview" 
+                <input type="text"
+                       name="name"
+                       impulse:input="setName"
+                       impulse:update="preview"
                        placeholder="Votre prénom..." />
-                
-                <p>Bonjour, <strong data-impulse-update="preview">$name</strong></p>
-                
+
+                <p>Bonjour, <strong data-impulse-update="preview">$name</strong>, tu n'as pas de moteur de template !</p>
+
                 <!-- Bouton pour vider le champ -->
                 <button type="button" impulse:click="clearName" impulse:update="preview">
                     Effacer
                 </button>
             </div>
-        HTML;
+        HTML;*/
+
+        return $this->view('hello.index', [
+            'name' => $name,
+        ]);
     }
 }

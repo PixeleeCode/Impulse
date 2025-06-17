@@ -2,7 +2,7 @@
 
 namespace Impulse\Core\Handler;
 
-use Impulse\Attributes\ImpulseAction;
+use Impulse\Attributes\Action;
 use Impulse\Core\Component;
 use Impulse\Core\ComponentResolver;
 use JetBrains\PhpStorm\NoReturn;
@@ -120,13 +120,15 @@ class AjaxHandler
                 if (method_exists($component, $method)) {
                     $refMethod = new \ReflectionMethod($component, $method);
                     if (
-                        $refMethod->getAttributes(ImpulseAction::class)
+                        $refMethod->getAttributes(Action::class)
                         && $refMethod->isPublic()
                         && !str_starts_with($method, '__')
                         && !in_array(strtolower($method), $this->forbidden, true)
                     ) {
                         call_user_func_array([$component, $method], $args);
                         $actionCalled = true;
+                    } else if($refMethod->getAttributes(Action::class) && !$refMethod->isPublic()) {
+                        error_log("[Impulse] La méthode '$method' est décorée avec #[Action] mais n'est pas publique. Elle ne pourra pas être appelée.");
                     }
                 }
 

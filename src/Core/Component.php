@@ -4,6 +4,7 @@ namespace Impulse\Core;
 
 use Impulse\Collections\Collection\MethodCollection;
 use Impulse\Collections\Collection\StateCollection;
+use Impulse\ImpulseRenderer;
 use Impulse\Interfaces\ComponentInterface;
 
 abstract class Component implements ComponentInterface
@@ -58,11 +59,34 @@ abstract class Component implements ComponentInterface
         $id = $this->getId();
         $dataStates = htmlspecialchars(json_encode($this->getStates(), JSON_THROW_ON_ERROR), ENT_QUOTES, 'UTF-8');
 
+        $template = $this->template();
+
+        if (trim($template) !== '') {
+            $content = $template;
+        } elseif ($renderer = ImpulseRenderer::get()) {
+            $content = $renderer->render($this->getTemplateName(), $this->getViewData());
+        } else {
+            throw new \RuntimeException("Aucun contenu HTML ni moteur de template n’est disponible pour ce composant.");
+        }
+
         return <<<HTML
             <div data-impulse-id="$id" data-states="$dataStates">
-                {$this->template()}
+                {$content}
             </div>
         HTML;
+    }
+
+    /**
+     * @throws \JsonException
+     */
+    public function view(string $template, array $data = []): string
+    {
+        $renderer = ImpulseRenderer::get();
+        if (!$renderer) {
+            throw new \RuntimeException("Aucun moteur de rendu n'est défini. Impossible d'appeler view().");
+        }
+
+        return $renderer->render($template, $data ?: $this->getViewData());
     }
 
     /**
@@ -137,6 +161,16 @@ abstract class Component implements ComponentInterface
     public function __call(string $name, array $arguments): mixed
     {
         return $this->methods->call($name, $arguments);
+    }
+
+    public function getTemplateName(): string
+    {
+        return get_class($this);
+    }
+
+    public function getViewData(): array
+    {
+        return get_object_vars($this);
     }
 
     public function onBeforeAction(?string $method = null, array $args = []): void {}

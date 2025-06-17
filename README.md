@@ -12,6 +12,7 @@ en AJAX, tout en gardant la logique métier en PHP pur.
 - **Composant PHP** : Vous codez la logique côté backend (état, méthodes, rendu HTML).
 - **Composant JS** : Vous ajoutez des attributs impulse:\* (impulse:input, impulse:click…) pour déclencher les updates.
 - **Rendu partiel** : Seule la partie du composant concernée (data-impulse-part) est remplacée dans le DOM, pour une expérience ultra-fluide.
+- **Moteur de template flexible** : Utilisez du HTML inline ou configurez un moteur comme Twig, Blade ou le vôtre en quelques secondes.
 
 ---
 
@@ -32,7 +33,7 @@ final class HelloUser extends Component
         $this->state('name', '');
     }
     
-    #[ImpulseAction]
+    #[Action]
     public function setName(string $name): void
     {
         $this->name = $name;
@@ -85,7 +86,24 @@ Ajoutez le script JS dans vos layouts :
 <script src="/public/impulse.js" defer></script>
 ```
 
-### 3. Déclare tes composants
+### 3. (Optionnel) Configurer un moteur de template
+
+Impulse permet d’utiliser un moteur externe comme Twig ou Blade. Pour cela :
+
+```bash
+php bin/impulse renderer:configure
+```
+
+Vous pourrez choisir le moteur souhaité et son installation sera automatisée.  
+Vous pouvez aussi créer votre propre moteur avec :
+
+```bash
+php bin/impulse make:renderer
+```
+
+Voir [la documentation](docs/template.md) pour plus de détails.
+
+### 4. Déclare tes composants
 Place les composants dans `src/Components/`, (ou autres, mais adaptez le namespace).
 
 ```php

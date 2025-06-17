@@ -29,10 +29,7 @@ class Modal extends Component
 
         return <<<HTML
             <button impulse:click="open">Ouvrir la modale</button>
-            <div 
-                data-impulse-part="modal"
-                class="impulse-modal-backdrop $isOpenClass"
-            >
+            <div class="impulse-modal-backdrop $isOpenClass">
                 <div class="impulse-modal-content">
                     <h2>Ma super modale</h2>
                     <p>Ceci est une modale Impulse.</p>

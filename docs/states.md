@@ -176,7 +176,7 @@ class Counter extends Component
         $this->state('count', 0);
     }
 
-    #[ImpulseAction]
+    #[Action]
     public function increment(): void
     {
         $this->count += + 1;
