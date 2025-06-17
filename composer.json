@@ -1,27 +1,31 @@
 {
-    "name": "pixelee/impulse",
-    "description": "Impulse est une micro librairie PHP pour créer des composants dynamiques sans écrire de Javascript, inspiré de Vue3 Composition API et Livewire.",
-    "type": "library",
-    "license": "MIT",
-    "autoload": {
-        "psr-4": {
-            "Impulse\\": "src/"
-        },
-        "exclude-from-classmap": [
-          "/tests/"
-        ]
-    },
-    "authors": [
-        {
-            "name": "Guillaume Bouyer",
-            "email": "pixelee.impulse@icloud.com"
-        }
-    ],
-    "minimum-stability": "stable",
+  "name": "pixelee/impulse",
+  "description": "Impulse est une micro librairie PHP pour créer des composants dynamiques sans écrire de Javascript, inspiré de Vue3 Composition API et Livewire.",
+  "type": "library",
+  "license": "MIT",
+  "autoload": {
+      "psr-4": {
+          "Impulse\\": "src/"
+      },
+      "exclude-from-classmap": [
+        "/tests/"
+      ]
+  },
+  "authors": [
+      {
+          "name": "Guillaume Bouyer",
+          "email": "pixelee.impulse@icloud.com"
+      }
+  ],
+  "minimum-stability": "stable",
   "require": {
     "php": ">=8.2",
     "ext-libxml": "*",
-    "ext-dom": "*"
+    "ext-dom": "*",
+    "symfony/console": "^7.3",
+    "symfony/process": "^7.3",
+    "illuminate/view": "^12.18",
+    "twig/twig": "^3.21"
   },
   "require-dev": {
     "roave/security-advisories": "dev-latest",

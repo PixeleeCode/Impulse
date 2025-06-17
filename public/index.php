@@ -17,18 +17,6 @@ use Impulse\ImpulseFactory;
 // Créer les instances de composants
 $modal = ImpulseFactory::create(Modal::class);
 $multiSelect = ImpulseFactory::create(MultiSelect::class, [
-    'options' => [
-        [ 'label' => 'Banana',   'emoji' => '🍌' ],
-        [ 'label' => 'Apple',    'emoji' => '🍎' ],
-        [ 'label' => 'Cheese',   'emoji' => '🧀' ],
-        [ 'label' => 'Pizza',    'emoji' => '🍕' ],
-        [ 'label' => 'Pretzel',  'emoji' => '🥨' ],
-        [ 'label' => 'Donut',    'emoji' => '🍩' ],
-        [ 'label' => 'Pineapple','emoji' => '🍍' ],
-        [ 'label' => 'Hamburger','emoji' => '🍔' ],
-        [ 'label' => 'Watermelon','emoji' => '🍉' ],
-    ],
-    // Si tu veux pré-sélectionner :
     'selected' => [
         [ 'label' => 'Hamburger', 'emoji' => '🍔' ],
         [ 'label' => 'Watermelon','emoji' => '🍉' ]
@@ -54,14 +42,14 @@ $livePreview = ImpulseFactory::create(LivePreview::class);
 <html lang="fr">
     <head>
         <meta charset="UTF-8">
-        <title>ImpulsePHP - Démo</title>
+        <title>Impulse - Démo</title>
         <script src="impulse.js"></script>
         <script>
             // Emmetre un emit en JS
-            Impulse.emit('saveUser', { input: 123 }, {
+            /*Impulse.emit('saveUser', { input: 123 }, {
                 components: ['hellouser_1'],
                 callback: r => alert(JSON.stringify(r))
-            });
+            });*/
 
             // Ecouter un emit en JS
             document.addEventListener('impulse:emit', function(event) {
@@ -225,20 +213,10 @@ $livePreview = ImpulseFactory::create(LivePreview::class);
                 transform: scale(1) translateY(0);
                 opacity: 1;
             }
-
-            .multi-select-wrap { margin:20px 0; }
-            .multi-select-box { border:2px solid #bad2f7; border-radius:9px; padding:5px 10px; min-height:42px; position:relative; background:#fff;}
-            .multi-chips { display:flex; flex-wrap:wrap; align-items:center; gap:7px;}
-            .multi-chip { background:#eef6fd; border-radius:7px; padding:2px 8px; display:inline-flex; align-items:center; }
-            .multi-remove { margin-left:4px; border:none; background:none; color:#555; font-size:18px; cursor:pointer; }
-            .multi-dropdown { display:none; position:absolute; left:0; right:0; top:100%; background:#fff; border:1px solid #cde0fa; border-radius:0 0 8px 8px; z-index:99; max-height:170px; overflow-y:auto;}
-            .multi-select-box:focus-within .multi-dropdown { display:block; }
-            .multi-option { padding:8px 16px; cursor:pointer;}
-            .multi-option:hover { background:#edf6ff; }
         </style>
     </head>
     <body>
-        <h1>Démo ImpulsePHP</h1>
+        <h1>Démo Impulse</h1>
 
         <div class="component">
             <?= $modal->render() ?>
