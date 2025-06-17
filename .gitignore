@@ -1,4 +1,7 @@
-/vendor/
 /.phpunit.cache/
 /.idea/
+/vendor/
+/node_modules/
+/var/
 composer.lock
+package-lock.json
