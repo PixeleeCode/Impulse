@@ -2,68 +2,59 @@
 
 namespace Impulse\Components;
 
+use Impulse\Attributes\Action;
 use Impulse\Core\Component;
 
+/**
+ * @property array $options
+ * @property array $selected
+ */
 class MultiSelect extends Component
 {
     public function setup(): void
     {
-        $options = $this->state('options', []);
-        $selected = $this->state('selected', []);
+        $this->state('options', [
+            [ 'label' => 'Banana',   'emoji' => '🍌' ],
+            [ 'label' => 'Apple',    'emoji' => '🍎' ],
+            [ 'label' => 'Cheese',   'emoji' => '🧀' ],
+            [ 'label' => 'Pizza',    'emoji' => '🍕' ],
+            [ 'label' => 'Pretzel',  'emoji' => '🥨' ],
+            [ 'label' => 'Donut',    'emoji' => '🍩' ],
+            [ 'label' => 'Pineapple','emoji' => '🍍' ],
+            [ 'label' => 'Hamburger','emoji' => '🍔' ],
+            [ 'label' => 'Watermelon','emoji' => '🍉' ],
+        ]);
 
-        // Ajouter une option à la sélection
-        $this->methods->register('add', function (int $idx) use ($options, $selected) {
-            $current = $selected->get();
-            $opts = $options->get();
-            if (!isset($opts[$idx]) || in_array($opts[$idx], $current, true)) {
-                return;
-            }
+        $this->state('selected', []);
+    }
 
-            $current[] = $opts[$idx];
-            $selected->set($current);
-        });
+    #[Action]
+    public function addOption(int $idx): void
+    {
+        $options = $this->options;
+        $selected = $this->selected;
 
-        // Retirer une option
-        $this->methods->register('remove', function (int $idx) use ($selected) {
-            $current = $selected->get();
-            array_splice($current, $idx, 1);
-            $selected->set($current);
-        });
+        if (!isset($options[$idx]) || in_array($options[$idx], $selected, true)) {
+            return;
+        }
+
+        $selected[] = $options[$idx];
+        $this->selected = $selected;
+    }
+
+    #[Action]
+    public function removeOption(int $idx): void
+    {
+        $selected = $this->selected;
+        array_splice($selected, $idx, 1);
+        $this->selected = $selected;
     }
 
     public function template(): string
     {
-        $id = $this->getId();
-        $options = $this->options ?? [];
-        $selected = $this->selected ?? [];
-
-        // Générer la liste filtrée
-        $already = array_map(static fn($opt) => $opt['label'], $selected);
-        $filtered = array_filter($options, static fn($o) => !in_array($o['label'], $already, true));
-
-        // Affichage des options sélectionnées
-        $selectedHtml = implode('', array_map(
-            static fn($opt, $idx) => '<span class="multi-chip">' .
-                htmlspecialchars($opt['label']) . ' ' . $opt['emoji'] .
-                '<button type="button" class="multi-remove" impulse:click="remove(' . $idx . ')">&times;</button></span>',
-            $selected, array_keys($selected)
-        ));
-
-        // Dropdown des options restantes
-        $dropdown = implode('', array_map(
-            static fn($opt, $i) => '<div class="multi-option" impulse:click="add(' . $i . ')">' .
-                htmlspecialchars($opt['label']) . ' ' . $opt['emoji'] . '</div>',
-            array_values($filtered), array_keys($filtered)
-        ));
-
-        return <<<HTML
-            <div data-impulse-id="{$id}" class="multi-select-wrap">
-                <label for="msel">What sounds tasty?</label>
-                <div class="multi-select-box" tabindex="0" id="msel">
-                    <div class="multi-chips">{$selectedHtml}<input type="text" class="multi-input" readonly></div>
-                    <div class="multi-dropdown">{$dropdown}</div>
-                </div>
-            </div>
-        HTML;
+        return $this->view('components.multi-select', [
+            'options' => $this->options,
+            'selected' => $this->selected,
+        ]);
     }
 }
