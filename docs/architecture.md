@@ -6,13 +6,14 @@ Cette section présente l’organisation recommandée pour les fichiers du frame
 
 ```
 src/
-├── Config.php        # Gestion centralisée de la configuration
 ├── Attributes/       # Attributs PHP personnalisés
 ├── Collections/      # Collections et helpers internes
 ├── Commands/         # Commandes de la CLI
+├── Components/       # Exemples de composants
 ├── Core/             # Classes noyau (Component, State, ...)
+├── Helpers/          # Fonctions utilitaires et assistants
+├── Interfaces/       # Interfaces et contrats du framework
 ├── Rendering/        # Moteurs de rendu
-└── Components/       # Exemples de composants
 ```
 
 Les fichiers frontaux TypeScript sont stockés dans le dossier `impulse/` puis
