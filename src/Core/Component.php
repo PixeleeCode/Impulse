@@ -211,8 +211,7 @@ abstract class Component implements ComponentInterface
      */
     public function __isset(string $name): bool
     {
-        // On pourrait vérifier dans $this->stateCache si le state existe.
-        // Ici non implémenté, retourner false par défaut.
+        // Non implémenté, retourner false par défaut.
         return false;
     }
 

@@ -36,25 +36,21 @@ class ComponentHtmlTransformer
                         continue;
                     }
 
-                    // Récupération des props HTML
                     $props = [];
                     foreach ($node->attributes as $attr) {
                         $props[$attr->name] = $attr->value;
                     }
 
-                    // Génération ID unique
                     $componentBase = strtolower((new \ReflectionClass($className))->getShortName());
                     $globalCounters[$componentBase] = ($globalCounters[$componentBase] ?? 0) + 1;
                     $id = $componentBase . '_imbrication_' . $globalCounters[$componentBase];
 
-                    // Slots : nommés <slot name="..."> ou contenu brut
                     $slots = [];
                     foreach ($node->getElementsByTagName('slot') as $slotElement) {
                         $slotName = $slotElement->getAttribute('name') ?: '__slot';
                         $slots[$slotName] = $this->innerHTML($slotElement);
                     }
 
-                    // Fallback si pas de slot défini
                     if (empty($slots['__slot'])) {
                         $raw = '';
                         foreach ($node->childNodes as $child) {
@@ -63,22 +59,18 @@ class ComponentHtmlTransformer
                         $slots['__slot'] = html_entity_decode($raw, ENT_QUOTES | ENT_HTML5, 'UTF-8');
                     }
 
-                    // Injection du slot principal
                     $props['__slot'] = $slots['__slot'] ?? '';
 
-                    // Création de l’instance du composant
                     $instance = ImpulseFactory::create($className, $props, $id);
 
-                    // Ajout des slots nommés supplémentaires
                     foreach ($slots as $name => $content) {
                         if ($name !== '__slot') {
-                            $instance->setSlot($name, $content); // tu dois avoir cette méthode ou un équivalent
+                            $instance->setSlot($name, $content);
                         }
                     }
 
                     $rendered = $instance->render();
 
-                    // Sauvegarde du slot dans un attribut encodé pour restaurer après AJAX
                     $encodedSlot = base64_encode($props['__slot']);
                     $rendered = preg_replace_callback(
                         '/(<div[^>]+data-impulse-id="[^"]+")/',
@@ -86,7 +78,6 @@ class ComponentHtmlTransformer
                         $rendered
                     );
 
-                    // Remplacement dans le DOM
                     $tmpDom = new \DOMDocument();
                     libxml_use_internal_errors(true);
                     $tmpDom->loadHTML('<?xml encoding="utf-8" ?><!DOCTYPE html><html><body>' . $rendered . '</body></html>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);

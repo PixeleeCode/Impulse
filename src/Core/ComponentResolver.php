@@ -16,6 +16,13 @@ class ComponentResolver
      */
     private static array $namespaces = [];
 
+    public static function all(): array
+    {
+        self::initializeCollections();
+
+        return self::$componentCache->toArray();
+    }
+
     /**
      * Initialise les collections statiques
      */
@@ -46,7 +53,6 @@ class ComponentResolver
             return self::$componentCache->getCached($id);
         }
 
-        // Décomposer l'ID pour extraire le type de composant
         if (!preg_match('/^([a-z]+)_/', $id, $matches)) {
             error_log("Format d'ID invalide: $id");
             return null;
@@ -107,14 +113,7 @@ class ComponentResolver
     {
         self::initializeCollections();
 
-        $guessedClassName = ucfirst($prefix);
-        // $fullClassName = self::$componentNamespace . $guessedClassName;
-
-        // if (class_exists($fullClassName)) {
-        //     return $guessedClassName;
-        // }
-
-        return $guessedClassName;
+        return ucfirst($prefix);
     }
 
     /**

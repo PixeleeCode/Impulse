@@ -117,9 +117,7 @@ function applyUpdate(componentId: string, html: string, focusInfo?: any)
   try {
     const parsed = JSON.parse(html);
     if (parsed && typeof parsed === 'object' && parsed.fragments) {
-      // Rendu groupé avec plusieurs fragments nommés
       Object.entries(parsed.fragments as Record<string, string>).forEach(([key, content]) => {
-        // key = "groupName::title"
         const [group, state] = key.split("@");
         const selector = `[data-impulse-update^="${group}@"]`;
         const targets = document.querySelectorAll(selector);
@@ -203,7 +201,6 @@ function applyUpdate(componentId: string, html: string, focusInfo?: any)
   }
 }
 
-// Met à jour un composant par appel AJAX (action impulsée depuis un event)
 export async function updateComponent(componentId: string, action: string, value?: string, focusInfo?: any)
 {
   const states = collectStates(componentId);
@@ -249,7 +246,6 @@ function getComponentIds(componentsOption?: string | string[]): string[]
 export async function emit(event: string, payload: any = {}, options: any = {}) {
   const components = getComponentIds(options.components);
 
-  // Par défaut, envoie vers impulse.php (adaptable si besoin)
   const response = await fetch('/impulse.php', {
     method: 'POST',
     headers: {

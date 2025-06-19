@@ -160,7 +160,7 @@ class AjaxDispatcher
                     call_user_func_array([$component, $method], $args);
                     $actionCalled = true;
                 } elseif ($refMethod->getAttributes(Action::class) && !$refMethod->isPublic()) {
-                    error_log("[Impulse] La méthode '$method' est décorée avec #[Action] mais n'est pas publique. Elle ne pourra pas être appelée.");
+                    error_log("La méthode '$method' est décorée avec #[Action] mais n'est pas publique. Elle ne pourra pas être appelée.");
                 }
             }
 

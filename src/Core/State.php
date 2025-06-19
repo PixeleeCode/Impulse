@@ -47,8 +47,6 @@ class State implements StateInterface
                         $callback($value, $old);
                     }
                 }
-
-                $this->component->markUpdate($this->name);
             }
         }
     }
