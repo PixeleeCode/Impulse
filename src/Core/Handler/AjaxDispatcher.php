@@ -203,7 +203,7 @@ class AjaxDispatcher
         $component->onAfterAction();
 
         ob_start();
-        echo $component->render();
+        echo $component->render($data['update'] ?? null);
         $html = ob_get_clean();
 
         if (!empty($data['requestStates'])) {

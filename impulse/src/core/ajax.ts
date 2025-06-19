@@ -114,6 +114,47 @@ function applyUpdate(componentId: string, html: string, focusInfo?: any)
   wrapper.innerHTML = html;
   const newComponent = wrapper.querySelector("[data-impulse-id]");
 
+  try {
+    const parsed = JSON.parse(html);
+    if (parsed && typeof parsed === 'object' && parsed.fragments) {
+      // Rendu groupé avec plusieurs fragments nommés
+      Object.entries(parsed.fragments as Record<string, string>).forEach(([key, content]) => {
+        // key = "groupName::title"
+        const [group, state] = key.split("@");
+        const selector = `[data-impulse-update^="${group}@"]`;
+        const targets = document.querySelectorAll(selector);
+
+        targets.forEach(el => {
+          const attr = el.getAttribute("data-impulse-update");
+          if (!attr) return;
+          const stateKey = attr.split("@")[1];
+          if (!stateKey) return;
+          if (stateKey === state) {
+            const wrapper = document.createElement("div");
+            wrapper.innerHTML = content.trim();
+            const newNode = wrapper.firstElementChild;
+            if (newNode) {
+              el.replaceWith(newNode);
+            } else {
+              el.innerHTML = content;
+            }
+          }
+        });
+      });
+
+      if (parsed.states) {
+        const currentComponent = document.querySelector(`[data-impulse-id="${componentId}"]`);
+        if (currentComponent) {
+          currentComponent.setAttribute('data-states', JSON.stringify(parsed.states));
+        }
+      }
+
+      return;
+    }
+  } catch (e) {
+    // pas du JSON, on continue normalement
+  }
+
   if (focusInfo?.update) {
     let states = null;
 

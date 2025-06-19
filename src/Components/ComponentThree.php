@@ -33,10 +33,10 @@ final class ComponentThree extends Component
     {
         return <<<HTML
             <div>
-                <h3 data-impulse-update="{$this->getId()}::title">{$this->test}</h3>
+                <h3 data-impulse-update="group@{$this->getId()}::title">{$this->test}</h3>
                 {$this->slot}
-                <p data-impulse-update="{$this->getId()}::title">$this->message</p>
-                <button impulse:click="changeTitle" impulse:update="{$this->getId()}::title">Changer le titre H3</button>
+                <p data-impulse-update="group@{$this->getId()}::message">$this->message</p>
+                <button impulse:click="changeTitle" impulse:update="group">Changer le titre H3</button>
             </div>
         HTML;
     }

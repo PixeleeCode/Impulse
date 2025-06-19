@@ -80,7 +80,7 @@ abstract class Component implements ComponentInterface
      * @throws \JsonException
      * @throws \ReflectionException|\DOMException
      */
-    public function render(): string
+    public function render(?string $update = null): string
     {
         ComponentResolver::registerNamespaceFromInstance($this);
 
@@ -89,6 +89,37 @@ abstract class Component implements ComponentInterface
 
         $parser = new ComponentHtmlTransformer();
         $template = $parser->process($this->template());
+
+        if (!empty($update) && !str_contains($update, '@')) {
+            $dom = new \DOMDocument();
+            libxml_use_internal_errors(true);
+            $dom->loadHTML('<!DOCTYPE html><meta charset="utf-8">' . $template);
+            libxml_clear_errors();
+
+            $xpath = new \DOMXPath($dom);
+            $group = $update;
+
+            $fragments = [];
+            foreach ($xpath->query("//*[@data-impulse-update]") as $node) {
+                $attr = $node->getAttribute('data-impulse-update');
+                if (str_starts_with($attr, $group . '@')) {
+                    $parts = explode('@', $attr, 2);
+                    if (isset($parts[1])) {
+                        $key = $parts[1];
+                        $fragments["{$group}@{$key}"] = $dom->saveHTML($node);
+                    }
+                }
+            }
+
+            if (!empty($fragments)) {
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'fragments' => $fragments,
+                    'states' => $this->getStates(),
+                ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
+                exit;
+            }
+        }
 
         if (trim($template) !== '') {
             $content = $template;
