@@ -3,11 +3,13 @@
 namespace Impulse\Commands;
 
 use Impulse\Attributes\Renderer;
+use Impulse\Config;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ChoiceQuestion;
+use Symfony\Component\Console\Question\Question;
 use Symfony\Component\Process\Process;
 
 #[AsCommand(
@@ -42,26 +44,16 @@ class RendererConfigureCommand extends Command
         $engine = $helper->ask($input, $output, $question);
         $engine = $engine === 'Aucun' ? null : strtolower($engine);
 
-        // Ask user for the template directory path
-        $questionPath = new \Symfony\Component\Console\Question\Question(
+        $questionPath = new Question(
             '[<fg=cyan>Impulse</>] Où se trouvent vos templates ? [<fg=yellow>resources/views</>]',
             'resources/views'
         );
         $templatePath = $helper->ask($input, $output, $questionPath);
 
-        $config = [
-            'template_engine' => $engine ?? '',
-            'template_path' => $templatePath,
-        ];
-
-        $configDir = getcwd() . '/.impulse';
-        $configPath = $configDir . '/config.json';
-
-        if (!is_dir($configDir) && !mkdir($configDir, 0755, true) && !is_dir($configDir)) {
-            throw new \RuntimeException(sprintf('Directory "%s" was not created', $configDir));
-        }
-
-        file_put_contents($configPath, json_encode($config, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        Config::load();
+        Config::set('template_engine', $engine ?? '');
+        Config::set('template_path', $templatePath);
+        Config::save();
 
         $output->writeln("[<fg=cyan>Impulse</>] Fichier de configuration généré : <info>.impulse/config.json</info>.");
 

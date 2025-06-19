@@ -1,4 +1,4 @@
 {
     "template_engine": "blade",
-    "template_path": ""
+    "template_path": "resources/views"
 }
