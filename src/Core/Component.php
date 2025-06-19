@@ -7,6 +7,8 @@ use Impulse\Collections\Collection\StateCollection;
 use Impulse\Collections\Collection\WatcherCollection;
 use Impulse\ImpulseRenderer;
 use Impulse\Interfaces\ComponentInterface;
+use ScssPhp\ScssPhp\Compiler;
+use ScssPhp\ScssPhp\Exception\SassException;
 
 abstract class Component implements ComponentInterface
 {
@@ -77,6 +79,7 @@ abstract class Component implements ComponentInterface
      * Rend le composant avec conteneur data-impulse-id et data-states (automatique pour AJAX)
      * @throws \JsonException
      * @throws \ReflectionException|\DOMException
+     * @throws SassException
      */
     public function render(?string $update = null): string
     {
@@ -87,6 +90,14 @@ abstract class Component implements ComponentInterface
 
         $parser = new ComponentHtmlTransformer();
         $template = $parser->process($this->template());
+
+        if ($css = $this->style()) {
+            $compiled = $this->compileStyle();
+            $scopedAttr = $this->isScopedStyle() ? "[data-impulse-id=\"{$this->id}\"]" : '';
+            $css = preg_replace('/(^|\})\s*([^{]+)/', "$1 $scopedAttr $2", $compiled);
+            $styleTag = "<style>$css</style>";
+            $template = $styleTag . $template;
+        }
 
         if (!empty($update) && !str_contains($update, '@')) {
             $dom = new \DOMDocument();
@@ -181,6 +192,24 @@ abstract class Component implements ComponentInterface
         }
 
         return $states;
+    }
+
+    public function style(): ?string
+    {
+        return null;
+    }
+
+    public function isScopedStyle(): bool
+    {
+        return true;
+    }
+
+    /**
+     * @throws SassException
+     */
+    protected function compileStyle(): string
+    {
+        return (new Compiler())->compileString($this->style())->getCss();
     }
 
     /**

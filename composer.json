@@ -28,7 +28,8 @@
     "symfony/console": "^7.3",
     "symfony/process": "^7.3",
     "illuminate/view": "^12.18",
-    "twig/twig": "^3.21"
+    "twig/twig": "^3.21",
+    "scssphp/scssphp": "^2.0"
   },
   "require-dev": {
     "roave/security-advisories": "dev-latest",

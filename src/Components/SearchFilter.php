@@ -81,4 +81,31 @@ final class SearchFilter extends Component
             </div>
         HTML;
     }
+
+    public function style(): string
+    {
+        return <<<CSS
+            .search-filter {
+                input {
+                    padding: 0.5rem;
+                    width: 70%;
+                    border: 1px solid #ddd;
+                    border-radius: 4px;
+                    margin-right: 0.5rem;
+                }
+                .results {
+                    margin-top: 1rem;
+                }
+                ul {
+                    list-style-type: none;
+                    padding: 0;
+                    
+                    li {
+                        padding: 0.5rem;
+                        border-bottom: 1px solid #eee;
+                    }
+                }
+            }
+        CSS;
+    }
 }
