@@ -101,7 +101,7 @@ Vous pouvez aussi créer votre propre moteur avec :
 php bin/impulse make:renderer
 ```
 
-Voir [la documentation](docs/template.md) pour plus de détails.
+Voir [la documentation](docs/template.md) pour plus de détails.  
 La structure recommandée du projet est décrite dans [docs/architecture.md](docs/architecture.md).
 
 ### 4. Déclare tes composants
