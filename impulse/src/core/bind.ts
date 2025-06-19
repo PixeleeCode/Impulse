@@ -1,8 +1,8 @@
 import { updateComponent } from "./ajax";
 import { getUniqueSelector } from "../utils/dom";
 
-export function bindImpulseEvents() {
-  // impulse:click
+function bindClickEvents()
+{
   document.querySelectorAll<HTMLElement>("[impulse\\:click]").forEach((el) => {
     if ((el as any)._impulseBoundClick) return;
     (el as any)._impulseBoundClick = true;
@@ -16,12 +16,14 @@ export function bindImpulseEvents() {
       let update = el.getAttribute("impulse:update") || undefined;
 
       updateComponent(componentId!, method, undefined, {
-        update
+        update,
       });
     });
   });
+}
 
-  // impulse:input
+function bindInputEvents()
+{
   document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>("[impulse\\:input]").forEach((el) => {
     if ((el as any)._impulseBoundInput) return;
     (el as any)._impulseBoundInput = true;
@@ -45,12 +47,14 @@ export function bindImpulseEvents() {
         selectionStart,
         selectionEnd,
         caretPosition: selectionStart,
-        update
+        update,
       });
     });
   });
+}
 
-  // impulse:change
+function bindChangeEvents()
+{
   document.querySelectorAll<HTMLSelectElement | HTMLInputElement>("[impulse\\:change]").forEach((el) => {
     if ((el as any)._impulseBoundChange) return;
     (el as any)._impulseBoundChange = true;
@@ -63,7 +67,6 @@ export function bindImpulseEvents() {
       const value = (event.target as HTMLSelectElement | HTMLInputElement).value;
       let update = el.getAttribute("impulse:update") || undefined;
 
-      // Pour les éléments select, conserver l'option sélectionnée
       const selectedIndex = (el as HTMLSelectElement).selectedIndex !== undefined
         ? (el as HTMLSelectElement).selectedIndex
         : -1;
@@ -72,12 +75,14 @@ export function bindImpulseEvents() {
         activeElementId: el.id,
         activeElementSelector: getUniqueSelector(el),
         selectedIndex: selectedIndex,
-        update
+        update,
       });
     });
   });
+}
 
-  // impulse:blur
+function bindBlurEvents()
+{
   document.querySelectorAll<HTMLElement>("[impulse\\:blur]").forEach((el) => {
     if ((el as any)._impulseBoundBlur) return;
     (el as any)._impulseBoundBlur = true;
@@ -91,12 +96,14 @@ export function bindImpulseEvents() {
       let update = el.getAttribute("impulse:update") || undefined;
 
       updateComponent(componentId!, method, value, {
-        update
+        update,
       });
     });
   });
+}
 
-  // impulse:keydown
+function bindKeyDownEvents()
+{
   document.querySelectorAll<HTMLElement>("[impulse\\:keydown]").forEach((el) => {
     if ((el as any)._impulseBoundKeyDown) return;
     (el as any)._impulseBoundKeyDown = true;
@@ -110,12 +117,14 @@ export function bindImpulseEvents() {
       const key = event.key;
 
       updateComponent(componentId!, `${method}('${key}')`, undefined, {
-        update
+        update,
       });
     });
   });
+}
 
-  // impulse:submit (form)
+function bindSubmitEvents()
+{
   document.querySelectorAll<HTMLFormElement>("[impulse\\:submit]").forEach((form) => {
     if ((form as any)._impulseBoundSubmit) return;
     (form as any)._impulseBoundSubmit = true;
@@ -127,11 +136,14 @@ export function bindImpulseEvents() {
       if (!method || !componentId) return;
       let update = form.getAttribute("impulse:update") || undefined;
       updateComponent(componentId, method, undefined, {
-        update
+        update,
       });
     });
   });
+}
 
+function bindEmitEvents()
+{
   // impulse:emit universel
   document.querySelectorAll<HTMLElement>("[impulse\\:emit]").forEach((el) => {
     if ((el as any)._impulseBoundEmit) return;
@@ -149,9 +161,8 @@ export function bindImpulseEvents() {
 
       if (isForm) {
         const formData = new FormData(el as HTMLFormElement);
-        formData.forEach((v, k) => payload[k] = v);
+        formData.forEach((v, k) => (payload[k] = v));
       } else {
-        // Si l'élément a un attribut impulse:payload, parse-le comme JSON sinon ignore
         const attrPayload = el.getAttribute("impulse:payload");
         if (attrPayload) {
           try {
@@ -168,13 +179,26 @@ export function bindImpulseEvents() {
           if (typeof (el as any)._onImpulseResult === "function") {
             (el as any)._onImpulseResult(result);
           } else {
-            el.dispatchEvent(new CustomEvent("impulse:result", {
-              detail: result,
-              bubbles: true,
-            }));
+            el.dispatchEvent(
+              new CustomEvent("impulse:result", {
+                detail: result,
+                bubbles: true,
+              })
+            );
           }
-        }
+        },
       });
     });
   });
+}
+
+export function bindImpulseEvents()
+{
+  bindClickEvents();
+  bindInputEvents();
+  bindChangeEvents();
+  bindBlurEvents();
+  bindKeyDownEvents();
+  bindSubmitEvents();
+  bindEmitEvents();
 }

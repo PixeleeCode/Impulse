@@ -1,6 +1,6 @@
 <?php
 
-namespace Impulse;
+namespace Impulse\Core;
 
 class Config
 {

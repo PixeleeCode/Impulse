@@ -24,7 +24,7 @@ peut être manipulée via la classe `\Impulse\Config`.
 ## Utilisation de `Config`
 
 ```php
-use Impulse\Config;
+use Impulse\Core\Config;
 
 Config::load();
 $engine = Config::get('template_engine');

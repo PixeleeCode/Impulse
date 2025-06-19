@@ -3,6 +3,7 @@
 namespace Impulse;
 
 use Impulse\Attributes\Renderer;
+use Impulse\Core\Config;
 use Impulse\Interfaces\TemplateRendererInterface;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;

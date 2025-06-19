@@ -34,47 +34,66 @@ class AjaxDispatcher
 
     /**
      * @throws \JsonException
-     * @throws \ReflectionException
-     * @throws \DOMException
      */
-    public function handle(): void
+    private function parseRequest(): array
     {
-        header('Content-Type: text/html');
         try {
             $data = json_decode(file_get_contents('php://input'), true, 512, JSON_THROW_ON_ERROR);
         } catch (\JsonException $e) {
             $this->respondError("Erreur de décodage JSON: " . $e->getMessage());
         }
 
-        // Gestion des emits
-        if (isset($data['emit'])) {
-            $event = $data['emit'];
-            $payload = $data['payload'] ?? [];
-            $componentIds = $data['components'] ?? [];
-
-            $results = [];
-            foreach ($componentIds as $componentId) {
-                $component = ComponentResolver::resolve($componentId);
-                if ($component && method_exists($component, 'onEvent')) {
-                    $res = $component->onEvent($event, $payload);
-                    if ($res !== null) {
-                        $html = $component->render();
-                        $results[] = [
-                            'component' => $componentId,
-                            'result' => $res,
-                            'html' => $html,
-                        ];
-                    }
-                }
-            }
-
-            header('Content-Type: application/json');
-            echo json_encode([
-                'updates' => $results
-            ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
-            exit;
+        if (!is_array($data)) {
+            $this->respondError('Requête invalide');
         }
 
+        return $data;
+    }
+
+    /**
+     * @throws \DOMException
+     * @throws \ReflectionException
+     * @throws \JsonException
+     */
+    private function processEmit(array $data): bool
+    {
+        if (!isset($data['emit'])) {
+            return false;
+        }
+
+        $event = $data['emit'];
+        $payload = $data['payload'] ?? [];
+        $componentIds = $data['components'] ?? [];
+
+        $results = [];
+        foreach ($componentIds as $componentId) {
+            $component = ComponentResolver::resolve($componentId);
+            if ($component && method_exists($component, 'onEvent')) {
+                $res = $component->onEvent($event, $payload);
+                if ($res !== null) {
+                    $html = $component->render();
+                    $results[] = [
+                        'component' => $componentId,
+                        'result' => $res,
+                        'html' => $html,
+                    ];
+                }
+            }
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode([
+            'updates' => $results
+        ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
+
+        return true;
+    }
+
+    /**
+     * @throws \JsonException
+     */
+    private function resolveComponent(array $data): Component
+    {
         if (!isset($data['id'])) {
             $this->respondError("L'ID du composant est requis");
         }
@@ -95,96 +114,106 @@ class AjaxDispatcher
             }
         }
 
-        // Traitement des actions AJAX
-        if (isset($data['action'])) {
-            try {
-                $rawAction = $data['action'];
-                $args = [];
+        return $component;
+    }
 
-                if (preg_match('/^([a-zA-Z_]\w*)\((.*)\)$/', $rawAction, $matches)) {
-                    [$inutile, $method, $argsString] = $matches;
-                    if (trim($argsString) !== '') {
-                        $args = array_map('trim', explode(',', $argsString));
-                        $args = array_map(static function ($value) {
-                            if (is_numeric($value)) {
-                                return $value + 0;
-                            }
-                            return trim($value, '"\'');
-                        }, $args);
-                    }
-                } else {
-                    $method = $rawAction;
+    /**
+     * @throws \JsonException
+     */
+    private function executeAction(Component $component, array $data): void
+    {
+        if (!isset($data['action'])) {
+            return;
+        }
+
+        try {
+            $rawAction = $data['action'];
+            $args = [];
+
+            if (preg_match('/^([a-zA-Z_]\w*)\((.*)\)$/', $rawAction, $matches)) {
+                $method = $matches[1];
+                $argsString = $matches[2];
+                if (trim($argsString) !== '') {
+                    $args = array_map('trim', explode(',', $argsString));
+                    $args = array_map(static function ($value) {
+                        if (is_numeric($value)) {
+                            return $value + 0;
+                        }
+                        return trim($value, '"\'');
+                    }, $args);
                 }
-
-                // Appel du hook avant exécution de l’action
-                if ($component instanceof Component) {
-                    $component->onBeforeAction($method, $args);
-                }
-
-                $actionCalled = false;
-
-                if (method_exists($component, $method)) {
-                    $refMethod = new \ReflectionMethod($component, $method);
-                    if (
-                        $refMethod->getAttributes(Action::class)
-                        && $refMethod->isPublic()
-                        && !str_starts_with($method, '__')
-                        && !in_array(strtolower($method), $this->forbidden, true)
-                    ) {
-                        call_user_func_array([$component, $method], $args);
-                        $actionCalled = true;
-                    } else if($refMethod->getAttributes(Action::class) && !$refMethod->isPublic()) {
-                        error_log("[Impulse] La méthode '$method' est décorée avec #[Action] mais n'est pas publique. Elle ne pourra pas être appelée.");
-                    }
-                }
-
-                $methods = $component->getMethods();
-                if (!$actionCalled && $methods->exists($method)) {
-                    $callable = $methods->get($method);
-                    if (empty($args) && array_key_exists('value', $data)) {
-                        $args = [$data['value']];
-                    }
-
-                    $ref = new \ReflectionFunction($callable);
-                    $requiredParams = $ref->getNumberOfRequiredParameters();
-                    if (count($args) < $requiredParams) {
-                        throw new \RuntimeException("La méthode '$method' attend au moins $requiredParams argument(s), " . count($args) . " fourni(s).");
-                    }
-
-                    if (!is_callable($callable)) {
-                        throw new \RuntimeException("La méthode '$method' est introuvable ou non appelable dans le composant.");
-                    }
-
-                    $callable(...$args);
-                    $actionCalled = true;
-                }
-
-                if (!$actionCalled) {
-                    throw new \RuntimeException("Méthode '$method' non trouvée dans les méthodes définies.");
-                }
-            } catch (\Throwable $e) {
-                $this->respondError("Erreur lors de l'exécution de l'action: " . $e->getMessage());
+            } else {
+                $method = $rawAction;
             }
-        }
 
-        // Appel du hook après exécution de l’action
-        if ($component instanceof Component) {
-            $component->onAfterAction();
+            $component->onBeforeAction($method, $args);
+            $actionCalled = false;
+
+            if (method_exists($component, $method)) {
+                $refMethod = new \ReflectionMethod($component, $method);
+                if (
+                    $refMethod->getAttributes(Action::class)
+                    && $refMethod->isPublic()
+                    && !str_starts_with($method, '__')
+                    && !in_array(strtolower($method), $this->forbidden, true)
+                ) {
+                    call_user_func_array([$component, $method], $args);
+                    $actionCalled = true;
+                } elseif ($refMethod->getAttributes(Action::class) && !$refMethod->isPublic()) {
+                    error_log("[Impulse] La méthode '$method' est décorée avec #[Action] mais n'est pas publique. Elle ne pourra pas être appelée.");
+                }
+            }
+
+            $methods = $component->getMethods();
+            if (!$actionCalled && $methods->exists($method)) {
+                $callable = $methods->get($method);
+                if (empty($args) && array_key_exists('value', $data)) {
+                    $args = [$data['value']];
+                }
+
+                $ref = new \ReflectionFunction($callable);
+                $requiredParams = $ref->getNumberOfRequiredParameters();
+                if (count($args) < $requiredParams) {
+                    throw new \RuntimeException("La méthode '$method' attend au moins $requiredParams argument(s), " . count($args) . " fourni(s).");
+                }
+
+                if (!is_callable($callable)) {
+                    throw new \RuntimeException("La méthode '$method' est introuvable ou non appelable dans le composant.");
+                }
+
+                $callable(...$args);
+                $actionCalled = true;
+            }
+
+            if (!$actionCalled) {
+                throw new \RuntimeException("Méthode '$method' non trouvée dans les méthodes définies.");
+            }
+        } catch (\Throwable $e) {
+            $this->respondError("Erreur lors de l'exécution de l'action: " . $e->getMessage());
         }
+    }
+
+    /**
+     * @throws \ReflectionException
+     * @throws \DOMException
+     * @throws \JsonException
+     */
+    private function renderResponse(Component $component, array $data): void
+    {
+        $component->onAfterAction();
 
         ob_start();
         echo $component->render();
         $html = ob_get_clean();
 
-        $states = $component->getStates();
-
         if (!empty($data['requestStates'])) {
             header('Content-Type: application/json');
             echo json_encode([
                 'html' => $html,
-                'states' => $states,
+                'states' => $component->getStates(),
             ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
-            exit;
+
+            return;
         }
 
         if (!empty($data['update'])) {
@@ -211,10 +240,29 @@ class AjaxDispatcher
                     'states' => $component->getStates(),
                 ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
 
-                exit;
+                return;
             }
         }
 
         echo $html;
+    }
+
+    /**
+     * @throws \JsonException
+     * @throws \ReflectionException
+     * @throws \DOMException
+     */
+    public function handle(): void
+    {
+        header('Content-Type: text/html');
+        $data = $this->parseRequest();
+
+        if ($this->processEmit($data)) {
+            return;
+        }
+
+        $component = $this->resolveComponent($data);
+        $this->executeAction($component, $data);
+        $this->renderResponse($component, $data);
     }
 }
