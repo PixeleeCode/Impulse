@@ -6,7 +6,8 @@ use Impulse\Attributes\Action;
 use Impulse\Core\Component;
 
 /**
- * @property string test
+ * @property string $message
+ * @property string $test
  */
 final class ComponentThree extends Component
 {
@@ -14,7 +15,12 @@ final class ComponentThree extends Component
 
     public function setup(): void
     {
+        $message = $this->state('message', '');
         $this->state('test', 'Title H3');
+
+        $this->watch('test', function ($new, $old) use ($message) {
+            $message->set('Voici la nouvelle valeur : ' . $new . ' et l\'ancienne : ' . $old);
+        });
     }
 
     #[Action]
@@ -29,6 +35,7 @@ final class ComponentThree extends Component
             <div>
                 <h3 data-impulse-update="{$this->getId()}::title">{$this->test}</h3>
                 {$this->slot}
+                <p data-impulse-update="{$this->getId()}::title">$this->message</p>
                 <button impulse:click="changeTitle" impulse:update="{$this->getId()}::title">Changer le titre H3</button>
             </div>
         HTML;

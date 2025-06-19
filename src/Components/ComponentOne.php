@@ -6,7 +6,7 @@ use Impulse\Attributes\Action;
 use Impulse\Core\Component;
 
 /**
- * @property string test
+ * @property string $test
  */
 final class ComponentOne extends Component
 {

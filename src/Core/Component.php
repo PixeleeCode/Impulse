@@ -24,6 +24,11 @@ abstract class Component implements ComponentInterface
     protected array $defaults = [];
     protected string $slot = '';
 
+    /**
+     * @var array<int, mixed>
+     */
+    protected array $watchers = [];
+
     protected MethodCollection $methods;
     protected StateCollection $stateCache;
 
@@ -44,6 +49,7 @@ abstract class Component implements ComponentInterface
         $this->stateCache = new StateCollection();
 
         $this->setup();
+        $this->stateCache->setComponent($this);
     }
 
     public function getId(): string
@@ -128,6 +134,7 @@ abstract class Component implements ComponentInterface
     public function state(string $name, mixed $defaultValue, bool $protected = false): State
     {
         $defaultValue = array_key_exists($name, $this->defaults) ? $this->defaults[$name] : $defaultValue;
+
         return $this->stateCache->getOrCreate($name, $defaultValue, $protected);
     }
 
@@ -214,6 +221,21 @@ abstract class Component implements ComponentInterface
         }
 
         return $this->namedSlots[$name] ?? '';
+    }
+
+    public function watch(string $stateName, callable $callback): static
+    {
+        $this->watchers[$stateName][] = $callback;
+
+        return $this;
+    }
+
+    /**
+     * @return array<int, mixed>
+     */
+    public function getWatchers(): array
+    {
+        return $this->watchers;
     }
 
     public function onBeforeAction(?string $method = null, array $args = []): void {}

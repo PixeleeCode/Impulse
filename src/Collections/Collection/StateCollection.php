@@ -5,6 +5,7 @@ namespace Impulse\Collections\Collection;
 use Impulse\Collections\Collection;
 use Impulse\Interfaces\StateCollectionInterface;
 use Impulse\Core\State;
+use Impulse\Core\Component;
 
 /**
  * Collection spécialisée pour le cache d'état
@@ -12,6 +13,8 @@ use Impulse\Core\State;
  */
 class StateCollection extends Collection implements StateCollectionInterface
 {
+    private ?Component $component = null;
+
     /**
      * Crée ou récupère un état
      */
@@ -41,7 +44,22 @@ class StateCollection extends Collection implements StateCollectionInterface
     {
         $state = $this->get($name);
         if ($state) {
+            $oldValue = $state->get();
             $state->set($value);
+
+            if ($this->component) {
+                $watchers = $this->component->getWatchers();
+                if (isset($watchers[$name])) {
+                    foreach ($watchers[$name] as $callback) {
+                        $callback($value, $oldValue);
+                    }
+                }
+            }
         }
+    }
+
+    public function setComponent(Component $component): void
+    {
+        $this->component = $component;
     }
 }
