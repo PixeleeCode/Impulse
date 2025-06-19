@@ -125,26 +125,32 @@ class ComponentHtmlTransformer
     private function getComponentTags(): array
     {
         $components = [];
-        $directory = __DIR__ . '/../Components';
-        $namespace = 'Impulse\\Components\\';
+        $namespaces = Config::get('component_namespaces', []);
 
-        foreach (scandir($directory) as $file) {
-            if (!str_ends_with($file, '.php')) {
+        foreach ($namespaces as $namespace) {
+            $directory = namespace_to_path($namespace);
+            if (!is_dir($directory)) {
                 continue;
             }
 
-            $className = $namespace . basename($file, '.php');
-            if (!class_exists($className)) {
-                continue;
-            }
+            foreach (scandir($directory) as $file) {
+                if (!str_ends_with($file, '.php')) {
+                    continue;
+                }
 
-            $reflection = new \ReflectionClass($className);
-            if ($reflection->isInstantiable()) {
-                $instance = $reflection->newInstanceWithoutConstructor();
-                $tagName = property_exists($instance, 'tagName') && is_string($instance->tagName)
-                    ? $instance->tagName
-                    : strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $reflection->getShortName()));
-                $components[$tagName] = $className;
+                $className = $namespace . basename($file, '.php');
+                if (!class_exists($className)) {
+                    continue;
+                }
+
+                $reflection = new \ReflectionClass($className);
+                if ($reflection->isInstantiable()) {
+                    $instance = $reflection->newInstanceWithoutConstructor();
+                    $tagName = property_exists($instance, 'tagName') && is_string($instance->tagName)
+                        ? $instance->tagName
+                        : strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $reflection->getShortName()));
+                    $components[$tagName] = $className;
+                }
             }
         }
 

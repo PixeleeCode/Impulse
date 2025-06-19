@@ -4,12 +4,15 @@
   "type": "library",
   "license": "MIT",
   "autoload": {
-      "psr-4": {
-          "Impulse\\": "src/"
-      },
-      "exclude-from-classmap": [
-        "/tests/"
-      ]
+    "psr-4": {
+        "Impulse\\": "src/"
+    },
+    "exclude-from-classmap": [
+      "/tests/"
+    ],
+    "files": [
+      "src/Helpers/helpers.php"
+    ]
   },
   "authors": [
       {

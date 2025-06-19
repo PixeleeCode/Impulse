@@ -42,8 +42,8 @@ class State implements StateInterface
 
             if ($this->component) {
                 $watchers = $this->component->getWatchers();
-                if (isset($watchers[$this->name])) {
-                    foreach ($watchers[$this->name] as $callback) {
+                if ($watchers->has($this->name)) {
+                    foreach ($watchers->get($this->name) as $callback) {
                         $callback($value, $old);
                     }
                 }

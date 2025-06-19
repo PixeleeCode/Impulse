@@ -4,6 +4,7 @@ namespace Impulse\Core;
 
 use Impulse\Collections\Collection\MethodCollection;
 use Impulse\Collections\Collection\StateCollection;
+use Impulse\Collections\Collection\WatcherCollection;
 use Impulse\ImpulseRenderer;
 use Impulse\Interfaces\ComponentInterface;
 
@@ -24,11 +25,7 @@ abstract class Component implements ComponentInterface
     protected array $defaults = [];
     protected string $slot = '';
 
-    /**
-     * @var array<int, mixed>
-     */
-    protected array $watchers = [];
-
+    protected WatcherCollection $watchers;
     protected MethodCollection $methods;
     protected StateCollection $stateCache;
 
@@ -47,6 +44,7 @@ abstract class Component implements ComponentInterface
 
         $this->methods = new MethodCollection();
         $this->stateCache = new StateCollection();
+        $this->watchers = new WatcherCollection();
 
         $this->setup();
         $this->stateCache->setComponent($this);
@@ -255,15 +253,12 @@ abstract class Component implements ComponentInterface
 
     public function watch(string $stateName, callable $callback): static
     {
-        $this->watchers[$stateName][] = $callback;
+        $this->watchers->set($stateName, $callback);
 
         return $this;
     }
 
-    /**
-     * @return array<int, mixed>
-     */
-    public function getWatchers(): array
+    public function getWatchers(): WatcherCollection
     {
         return $this->watchers;
     }

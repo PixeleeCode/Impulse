@@ -49,8 +49,8 @@ class StateCollection extends Collection implements StateCollectionInterface
 
             if ($this->component) {
                 $watchers = $this->component->getWatchers();
-                if (isset($watchers[$name])) {
-                    foreach ($watchers[$name] as $callback) {
+                if ($watchers->has($name)) {
+                    foreach ($watchers->get($name) as $callback) {
                         $callback($value, $oldValue);
                     }
                 }
