@@ -10,7 +10,9 @@ use Impulse\Interfaces\StateInterface;
 class State implements StateInterface
 {
     private mixed $value;
+    private ?Component $component = null;
     private bool $protected;
+    private string $name = '';
 
     /**
      * Crée un nouvel état
@@ -34,7 +36,26 @@ class State implements StateInterface
      */
     public function set(mixed $value): void
     {
-        $this->value = $value;
+        if ($this->value !== $value) {
+            $old = $this->value;
+            $this->value = $value;
+
+            if ($this->component) {
+                $watchers = $this->component->getWatchers();
+                if (isset($watchers[$this->name])) {
+                    foreach ($watchers[$this->name] as $callback) {
+                        $callback($value, $old);
+                    }
+                }
+
+                $this->component->markUpdate($this->name);
+            }
+        }
+    }
+
+    public function setName(string $name): void
+    {
+        $this->name = $name;
     }
 
     /**
