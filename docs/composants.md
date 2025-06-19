@@ -223,12 +223,55 @@ Puis sur l’input ou le bouton :
 Ainsi, seul le fragment nommé `preview` sera remplacé lors de la mise à jour, pas tout le composant.
 Idéal pour les formulaires, les listes, les compteurs, etc.
 
-> **Pas de rendu partiel sur l'événement `impulse:emit`**
+> ⚠️ **Aucun rendu partiel n’est déclenché via l’événement `impulse:emit`.**  
+Il ne sert que pour déclencher des actions sur plusieurs composants.
 
 | Attribut                   |                           Rôle                           |
 |:---------------------------|:--------------------------------------------------------:|
 | impulse:update="name"      |     DEMANDE au backend de rafraîchir la zone “name”      |
 | data-impulse-update="name" | INDIQUE dans le DOM que cette balise correspond à “name” |
+
+### Groupes de fragments (`group@...`)
+
+Tu peux également grouper plusieurs fragments ensemble afin de les mettre à jour en un seul appel.
+
+#### Utilisation
+
+Dans ton HTML, utilise une convention comme `groupName@key` :
+```php
+return <<<HTML
+    <div>
+        <h3 data-impulse-update="header@{$this->getId()}::title">{$this->test}</h3>
+        <p data-impulse-update="header@{$this->getId()}::message">{$this->message}</p>
+        <button impulse:click="changeTitle" impulse:update="header">Changer le titre et message</button>
+    </div>
+HTML;
+```
+
+**Ici, `header` est le nom du groupe.**  
+`title` et `message` sont les identifiants internes utilisés côté backend pour reconstruire les fragments.  
+J'ai préfixé de `{$this->getId()}::` afin d'avoir un ID unique dans le DOM et ainsi éviter les mauvaises surprises.
+
+#### Résultat
+
+Lors d’un `impulse:update="header"`, l’update sera envoyée au serveur avec :
+```json
+{
+  "update": "header"
+}
+```
+
+Et le serveur retournera uniquement les fragments ayant un attribut `data-impulse-update` commençant par `header@`.
+```json
+{
+  "fragments": {
+    "header@component_1::title": "<h3>Nouveau titre</h3>",
+    "header@component_1::message": "<p>Nouveau message</p>"
+  }
+}
+```
+
+Le JS se charge alors automatiquement de remplacer les bons éléments dans le DOM.
 
 ---
 
