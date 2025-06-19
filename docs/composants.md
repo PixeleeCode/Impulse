@@ -15,6 +15,7 @@ Impulse permet de créer des composants réactifs en PHP, faciles à intégrer d
 - [Fragments et rendu partiel](#fragments-et-rendu-partiel)
 - [Utilisation de tags personnalisés pour les composants](#utilisation-de-tags-personnalisés-pour-les-composants)
 - [Slots : transmettre du contenu à un composant](#slots--transmettre-du-contenu-à-un-composant)
+- [Watchers : réagir aux changements d’état](#watchers--réagir-aux-changements-détat)
 - [Bonnes pratiques](#bonnes-pratiques)
 - [Aller plus loin](#aller-plus-loin)
 
@@ -376,6 +377,55 @@ Utilisation :
 * Le slot par défaut est disponible via `$this->slot()`, ou `$this->slot('__slot')`.
 * Les slots nommés sont extraits automatiquement en analysant le contenu du composant dans le DOM.
 * Si un slot nommé n'est pas fourni, le composant retournera une chaîne vide (`''`).
+
+---
+
+## Watchers : réagir aux changements d’état
+
+Les watchers permettent d'exécuter une fonction automatiquement lorsqu'un état change côté PHP.
+C’est utile pour déclencher des effets secondaires, mettre à jour un autre état, ou effectuer une action logique 
+interne au composant.
+
+### Utilisation de base
+
+Dans la méthode `setup()` de ton composant :
+```php
+public function setup(): void
+{
+    $this->state('counter', 0);
+    $message = $this->state('message', 'Inactif');
+
+    $this->watch('counter', function ($newValue, $oldValue) use ($message) {
+        if ($newValue > 5) {
+            $message->set('Trop élevé !');
+        }
+    });
+}
+```
+
+### Explication
+
+* `watch('counter', ...)` : déclenche la fonction **à chaque changement** de l’état `counter`.
+* `$newValue` est **la valeur mise à jour**.
+* `$oldValue` est la valeur **avant** la mise à jour.
+* Le callback peut :
+  * Modifier d'autres states
+  * Déclencher des actions internes (logging, transformation, etc.)
+
+> Les watchers ne sont **pas rétroactifs** : ils ne se déclenchent **que** lorsqu’un changement a lieu **après le rendu initial**.
+
+### Cas d’usage typiques
+
+* Réagir à des sélections ou saisi utilisateur
+* Synchroniser deux valeurs dépendantes (ex : total et sous-total)
+* Activer/désactiver dynamiquement une partie du formulaire
+* Déclencher un rechargement asynchrone en arrière-plan
+
+### Notes importantes
+
+* Tu peux attacher **plusieurs watchers sur un même state**.
+* Un watcher ne doit pas provoquer de boucle infinie (ex : modifier le state qu’il surveille lui-même).
+* Pour des traitements côté client (JS), voir la documentation `impulse:change`.
 
 ---
 
