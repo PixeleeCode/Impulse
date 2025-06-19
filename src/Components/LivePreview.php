@@ -22,6 +22,7 @@ final class LivePreview extends Component
                 <label for="live-name">Votre prénom :</label>
                 <input id="live-name" type="text" impulse:input="updateName" value="{$name}">
                 <p>Bonjour <strong>{$name}</strong>, bienvenue dans cette démonstration !</p>
+                <p><my-counter count="123456789" /></p>
             </div>
         HTML;
     }

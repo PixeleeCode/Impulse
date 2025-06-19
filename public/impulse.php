@@ -1,11 +1,11 @@
 <?php
 
-use Impulse\Core\Handler\AjaxHandler;
+use Impulse\Core\Handler\AjaxDispatcher;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
 try {
-    (new AjaxHandler())->handle();
+    (new AjaxDispatcher())->handle();
 } catch (JsonException $e) {
     throw new \RuntimeException($e->getMessage());
 }

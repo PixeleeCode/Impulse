@@ -26,3 +26,7 @@ entre composants.
 
 - [Communiquer avec `emit`](emit.md)  
   Explorez les possibilités de communication entre composants grâce à la méthode `emit()` pour transmettre des événements personnalisés.
+
+
+- [Architecture du projet](architecture.md)  
+  Aperçu de l’organisation des fichiers et de la classe `Config`.

@@ -3,6 +3,7 @@
 namespace Impulse;
 
 use Impulse\Attributes\Renderer;
+use Impulse\Core\Config;
 use Impulse\Interfaces\TemplateRendererInterface;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -17,37 +18,16 @@ class ImpulseRenderer
             return self::$renderer;
         }
 
-        $configPath = getcwd() . '/../.impulse/config.json';
-        if (!file_exists($configPath)) {
+        Config::load();
+
+        $engine = Config::get('template_engine');
+        if(!$engine) {
             return null;
         }
 
-        try {
-            $config = json_decode(
-                file_get_contents($configPath),
-                true,
-                512,
-                JSON_THROW_ON_ERROR
-            );
-        } catch (\JsonException) {
-            return null;
-        }
-
-        $engine = null;
-        if (!empty($config['template_engine'])) {
-            $engine = $config['template_engine'];
-        }
-
-        if($engine === null) {
-            return null;
-        }
-
-        $resourcesPath = 'resources/views';
-        if (!empty($config['template_path'])) {
-            $resourcesPath = $config['template_path'];
-        }
-
+        $resourcesPath = Config::get('template_path', 'resources/views');
         $absolutePath = getcwd() . '/../' . ltrim($resourcesPath, '/');
+
         if (!is_dir($absolutePath) && !mkdir($absolutePath, 0755, true) && !is_dir($absolutePath)) {
             throw new \RuntimeException(sprintf('Directory "%s" was not created', $absolutePath));
         }

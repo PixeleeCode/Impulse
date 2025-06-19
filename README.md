@@ -102,6 +102,7 @@ php bin/impulse make:renderer
 ```
 
 Voir [la documentation](docs/template.md) pour plus de détails.
+La structure recommandée du projet est décrite dans [docs/architecture.md](docs/architecture.md).
 
 ### 4. Déclare tes composants
 Place les composants dans `src/Components/`, (ou autres, mais adaptez le namespace).

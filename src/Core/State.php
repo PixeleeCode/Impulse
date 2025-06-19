@@ -10,7 +10,9 @@ use Impulse\Interfaces\StateInterface;
 class State implements StateInterface
 {
     private mixed $value;
+    private ?Component $component = null;
     private bool $protected;
+    private string $name = '';
 
     /**
      * Crée un nouvel état
@@ -34,7 +36,24 @@ class State implements StateInterface
      */
     public function set(mixed $value): void
     {
-        $this->value = $value;
+        if ($this->value !== $value) {
+            $old = $this->value;
+            $this->value = $value;
+
+            if ($this->component) {
+                $watchers = $this->component->getWatchers();
+                if ($watchers->has($this->name)) {
+                    foreach ($watchers->get($this->name) as $callback) {
+                        $callback($value, $old);
+                    }
+                }
+            }
+        }
+    }
+
+    public function setName(string $name): void
+    {
+        $this->name = $name;
     }
 
     /**
@@ -67,15 +86,17 @@ class State implements StateInterface
 
     /**
      * Permet d'utiliser l'objet directement comme une chaîne
-     *
-     * @throws \JsonException
      */
     public function __toString(): string
     {
         $value = $this->get();
 
         if (is_array($value) || is_object($value)) {
-            return json_encode($value, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE) ?: '';
+            try {
+                return json_encode($value, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR) ?: '';
+            } catch (\JsonException) {
+                return '';
+            }
         }
 
         return (string) $value;

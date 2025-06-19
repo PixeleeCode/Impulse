@@ -10,6 +10,8 @@ use Impulse\Core\Component;
  */
 final class Counter extends Component
 {
+    public ?string $tagName = 'my-counter';
+
     public function setup(): void
     {
         $count = $this->state('count', 0);

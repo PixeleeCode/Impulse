@@ -4,12 +4,15 @@
   "type": "library",
   "license": "MIT",
   "autoload": {
-      "psr-4": {
-          "Impulse\\": "src/"
-      },
-      "exclude-from-classmap": [
-        "/tests/"
-      ]
+    "psr-4": {
+        "Impulse\\": "src/"
+    },
+    "exclude-from-classmap": [
+      "/tests/"
+    ],
+    "files": [
+      "src/Helpers/helpers.php"
+    ]
   },
   "authors": [
       {
@@ -29,7 +32,8 @@
   },
   "require-dev": {
     "roave/security-advisories": "dev-latest",
-    "phpunit/phpunit": "^12.2.1"
+    "phpunit/phpunit": "^12.2.1",
+    "pixelee/insight-dumper": "dev-main"
   },
   "scripts": {
     "post-install-cmd": [

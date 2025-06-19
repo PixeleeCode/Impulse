@@ -24,15 +24,13 @@ class Modal extends Component
     public function template(): string
     {
         $open = (bool)$this->open;
-
         $isOpenClass = $open ? 'is-open' : '';
 
         return <<<HTML
             <button impulse:click="open">Ouvrir la modale</button>
             <div class="impulse-modal-backdrop $isOpenClass">
                 <div class="impulse-modal-content">
-                    <h2>Ma super modale</h2>
-                    <p>Ceci est une modale Impulse.</p>
+                    {$this->slot}
                     <button impulse:click="close">Fermer</button>
                 </div>
             </div>

@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../vendor/pixelee/insight-dumper/Resources/functions/in.php';
 
 use Impulse\Components\BlurCounter;
 use Impulse\Components\Counter;
@@ -15,6 +16,9 @@ use Impulse\Components\SubmitForm;
 use Impulse\ImpulseFactory;
 
 // Créer les instances de composants
+
+$componentOne = ImpulseFactory::create(\Impulse\Components\ComponentOne::class);
+
 $modal = ImpulseFactory::create(Modal::class);
 $multiSelect = ImpulseFactory::create(MultiSelect::class, [
     'selected' => [
@@ -217,6 +221,10 @@ $livePreview = ImpulseFactory::create(LivePreview::class);
     </head>
     <body>
         <h1>Démo Impulse</h1>
+
+        <div class="component">
+            <?= $componentOne->render() ?>
+        </div>
 
         <div class="component">
             <?= $modal->render() ?>

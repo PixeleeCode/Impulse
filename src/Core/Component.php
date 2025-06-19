@@ -4,6 +4,7 @@ namespace Impulse\Core;
 
 use Impulse\Collections\Collection\MethodCollection;
 use Impulse\Collections\Collection\StateCollection;
+use Impulse\Collections\Collection\WatcherCollection;
 use Impulse\ImpulseRenderer;
 use Impulse\Interfaces\ComponentInterface;
 
@@ -11,9 +12,20 @@ abstract class Component implements ComponentInterface
 {
     private string $id;
 
-    /** @var array<int, mixed> */
-    protected array $defaults = [];
+    /**
+     * @var array<int, mixed>
+     */
+    private array $namedSlots = [];
 
+    public ?string $tagName = null;
+
+    /**
+     * @var array<int, mixed>
+     */
+    protected array $defaults = [];
+    protected string $slot = '';
+
+    protected WatcherCollection $watchers;
     protected MethodCollection $methods;
     protected StateCollection $stateCache;
 
@@ -21,10 +33,21 @@ abstract class Component implements ComponentInterface
     {
         $this->id = $id;
         $this->defaults = $defaults;
+        $this->slot = $defaults['__slot'] ?? '';
+
+        foreach ($defaults as $key => $value) {
+            if (str_starts_with($key, '__slot:')) {
+                $slotName = substr($key, 8);
+                $this->namedSlots[$slotName] = $value;
+            }
+        }
+
         $this->methods = new MethodCollection();
         $this->stateCache = new StateCollection();
+        $this->watchers = new WatcherCollection();
 
         $this->setup();
+        $this->stateCache->setComponent($this);
     }
 
     public function getId(): string
@@ -53,13 +76,48 @@ abstract class Component implements ComponentInterface
     /**
      * Rend le composant avec conteneur data-impulse-id et data-states (automatique pour AJAX)
      * @throws \JsonException
+     * @throws \ReflectionException|\DOMException
      */
-    public function render(): string
+    public function render(?string $update = null): string
     {
+        ComponentResolver::registerNamespaceFromInstance($this);
+
         $id = $this->getId();
         $dataStates = htmlspecialchars(json_encode($this->getStates(), JSON_THROW_ON_ERROR), ENT_QUOTES, 'UTF-8');
 
-        $template = $this->template();
+        $parser = new ComponentHtmlTransformer();
+        $template = $parser->process($this->template());
+
+        if (!empty($update) && !str_contains($update, '@')) {
+            $dom = new \DOMDocument();
+            libxml_use_internal_errors(true);
+            $dom->loadHTML('<!DOCTYPE html><meta charset="utf-8">' . $template);
+            libxml_clear_errors();
+
+            $xpath = new \DOMXPath($dom);
+            $group = $update;
+
+            $fragments = [];
+            foreach ($xpath->query("//*[@data-impulse-update]") as $node) {
+                $attr = $node->getAttribute('data-impulse-update');
+                if (str_starts_with($attr, $group . '@')) {
+                    $parts = explode('@', $attr, 2);
+                    if (isset($parts[1])) {
+                        $key = $parts[1];
+                        $fragments["{$group}@{$key}"] = $dom->saveHTML($node);
+                    }
+                }
+            }
+
+            if (!empty($fragments)) {
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'fragments' => $fragments,
+                    'states' => $this->getStates(),
+                ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
+                exit;
+            }
+        }
 
         if (trim($template) !== '') {
             $content = $template;
@@ -69,16 +127,16 @@ abstract class Component implements ComponentInterface
             throw new \RuntimeException("Aucun contenu HTML ni moteur de template n’est disponible pour ce composant.");
         }
 
+        $slotEncoded = base64_encode($this->slot);
+        $slotAttr = $slotEncoded ? ' data-impulse-slot="' . htmlspecialchars($slotEncoded, ENT_QUOTES) . '"' : '';
+
         return <<<HTML
-            <div data-impulse-id="$id" data-states="$dataStates">
+            <div data-impulse-id="$id" data-states="$dataStates"$slotAttr>
                 {$content}
             </div>
         HTML;
     }
 
-    /**
-     * @throws \JsonException
-     */
     public function view(string $template, array $data = []): string
     {
         $renderer = ImpulseRenderer::get();
@@ -105,6 +163,7 @@ abstract class Component implements ComponentInterface
     public function state(string $name, mixed $defaultValue, bool $protected = false): State
     {
         $defaultValue = array_key_exists($name, $this->defaults) ? $this->defaults[$name] : $defaultValue;
+
         return $this->stateCache->getOrCreate($name, $defaultValue, $protected);
     }
 
@@ -150,8 +209,7 @@ abstract class Component implements ComponentInterface
      */
     public function __isset(string $name): bool
     {
-        // On pourrait vérifier dans $this->stateCache si le state existe.
-        // Ici non implémenté, retourner false par défaut.
+        // Non implémenté, retourner false par défaut.
         return false;
     }
 
@@ -171,6 +229,38 @@ abstract class Component implements ComponentInterface
     public function getViewData(): array
     {
         return get_object_vars($this);
+    }
+
+    /**
+     * Définit un slot nommé dans le composant.
+     */
+    public function setSlot(string $name, string $content): void
+    {
+        $this->namedSlots[$name] = $content;
+    }
+
+    /**
+     * Récupère un slot nommé, ou le slot par défaut.
+     */
+    public function slot(string $name = '__slot'): string
+    {
+        if ($name === '__slot') {
+            return $this->slot;
+        }
+
+        return $this->namedSlots[$name] ?? '';
+    }
+
+    public function watch(string $stateName, callable $callback): static
+    {
+        $this->watchers->set($stateName, $callback);
+
+        return $this;
+    }
+
+    public function getWatchers(): WatcherCollection
+    {
+        return $this->watchers;
     }
 
     public function onBeforeAction(?string $method = null, array $args = []): void {}

@@ -9,7 +9,7 @@ namespace Impulse\Collections;
 class Collection implements \Iterator, \Countable, \ArrayAccess
 {
     /** @var array<int|string, T> */
-    private array $items;
+    protected array $items;
     private int $position = 0;
 
     /**
@@ -28,6 +28,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
     public function add(mixed $item): self
     {
         $this->items[] = $item;
+
         return $this;
     }
 
@@ -39,6 +40,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
     public function set(int|string $key, mixed $item): self
     {
         $this->items[$key] = $item;
+
         return $this;
     }
 
@@ -66,6 +68,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
     public function remove(int|string $key): self
     {
         unset($this->items[$key]);
+
         return $this;
     }
 
@@ -117,6 +120,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
     public function clear(): self
     {
         $this->items = [];
+
         return $this;
     }
 
@@ -148,6 +152,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
     public function current()
     {
         $keys = array_keys($this->items);
+
         return $this->items[$keys[$this->position]] ?? null;
     }
 
@@ -155,6 +160,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
     public function key()
     {
         $keys = array_keys($this->items);
+
         return $keys[$this->position] ?? null;
     }
 
@@ -166,6 +172,7 @@ class Collection implements \Iterator, \Countable, \ArrayAccess
     public function valid(): bool
     {
         $keys = array_keys($this->items);
+
         return isset($keys[$this->position]);
     }
 
