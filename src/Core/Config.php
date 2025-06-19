@@ -32,6 +32,10 @@ class Config
             }
         }
 
+        if (!isset(self::$data['component_namespaces'])) {
+            self::$data['component_namespaces'] = [];
+        }
+
         self::$loaded = true;
     }
 

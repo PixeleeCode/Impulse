@@ -32,6 +32,14 @@ abstract class Component implements ComponentInterface
         $this->id = $id;
         $this->defaults = $defaults;
         $this->slot = $defaults['__slot'] ?? '';
+
+        foreach ($defaults as $key => $value) {
+            if (str_starts_with($key, '__slot:')) {
+                $slotName = substr($key, 8);
+                $this->namedSlots[$slotName] = $value;
+            }
+        }
+
         $this->methods = new MethodCollection();
         $this->stateCache = new StateCollection();
 
@@ -68,6 +76,8 @@ abstract class Component implements ComponentInterface
      */
     public function render(): string
     {
+        ComponentResolver::registerNamespaceFromInstance($this);
+
         $id = $this->getId();
         $dataStates = htmlspecialchars(json_encode($this->getStates(), JSON_THROW_ON_ERROR), ENT_QUOTES, 'UTF-8');
 

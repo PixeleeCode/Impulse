@@ -1,4 +1,7 @@
 {
     "template_engine": "blade",
-    "template_path": "resources/views"
+    "template_path": "resources/views",
+    "component_namespaces": [
+        "Impulse\\Components\\"
+    ]
 }

@@ -12,9 +12,9 @@ class ComponentResolver
     private static ComponentCollection $componentCache;
 
     /**
-     * Préfixe de namespace pour les composants
+     * Liste des namespaces enregistrés automatiquement
      */
-    private static string $componentNamespace = 'Impulse\\Components\\';
+    private static array $namespaces = [];
 
     /**
      * Initialise les collections statiques
@@ -22,7 +22,15 @@ class ComponentResolver
     private static function initializeCollections(): void
     {
         if (!isset(self::$componentCache)) {
+            Config::load();
             self::$componentCache = new ComponentCollection();
+        }
+
+        $names = Config::get('component_namespaces', []);
+        foreach ($names as $namespace) {
+            if (!in_array($namespace, self::$namespaces, true)) {
+                self::$namespaces[] = $namespace;
+            }
         }
     }
 
@@ -46,17 +54,23 @@ class ComponentResolver
 
         $prefix = $matches[1];
 
-        // Déterminer le nom de la classe à partir du préfixe
         $className = self::getClassNameFromPrefix($prefix);
         if ($className === null) {
             error_log("Aucune classe associée au préfixe: $prefix");
             return null;
         }
 
-        $componentClass = self::$componentNamespace . $className;
+        $componentClass = null;
+        foreach (self::$namespaces as $namespace) {
+            $candidate = $namespace . $className;
+            if (class_exists($candidate)) {
+                $componentClass = $candidate;
+                break;
+            }
+        }
 
-        if (!class_exists($componentClass)) {
-            error_log("Classe non trouvée: $componentClass");
+        if (!$componentClass) {
+            error_log("Classe non trouvée pour le préfixe: $prefix");
             return null;
         }
 
@@ -67,7 +81,18 @@ class ComponentResolver
             }
 
             $component = new $componentClass($id, $defaults);
+
+            foreach ($defaults as $key => $value) {
+                if (str_starts_with($key, '__slot:')) {
+                    $slotName = substr($key, 8);
+                    if (method_exists($component, 'setSlot')) {
+                        $component->setSlot($slotName, $value);
+                    }
+                }
+            }
+
             self::$componentCache->cache($id, $component);
+
             return $component;
         } catch (\Throwable $e) {
             error_log("Erreur lors de l'instanciation du composant $componentClass : " . $e->getMessage());
@@ -83,13 +108,13 @@ class ComponentResolver
         self::initializeCollections();
 
         $guessedClassName = ucfirst($prefix);
-        $fullClassName = self::$componentNamespace . $guessedClassName;
+        // $fullClassName = self::$componentNamespace . $guessedClassName;
 
-        if (class_exists($fullClassName)) {
-            return $guessedClassName;
-        }
+        // if (class_exists($fullClassName)) {
+        //     return $guessedClassName;
+        // }
 
-        return null;
+        return $guessedClassName;
     }
 
     /**
@@ -99,5 +124,48 @@ class ComponentResolver
     {
         self::initializeCollections();
         self::$componentCache->clear();
+    }
+
+    /**
+     * Enregistre dynamiquement un namespace à partir d'une instance de composant
+     */
+    public static function registerNamespaceFromInstance(object $instance): void
+    {
+        if (!$instance instanceof Component) {
+            return;
+        }
+
+        $class = get_class($instance);
+
+        foreach (self::$namespaces as $namespace) {
+            if (str_starts_with($class, $namespace)) {
+                return;
+            }
+        }
+
+        $parts = explode('\\', $class);
+        array_pop($parts);
+        $namespace = implode('\\', $parts) . '\\';
+
+        if (!in_array($namespace, self::$namespaces, true)) {
+            self::$namespaces[] = $namespace;
+            Config::load();
+            $existing = Config::get('component_namespaces', []);
+            if (!is_array($existing)) {
+                $existing = [];
+            }
+
+            if (!in_array($namespace, $existing, true)) {
+                $existing[] = $namespace;
+                Config::set('component_namespaces', $existing);
+
+                try {
+                    Config::save();
+                    error_log("[Impulse] Namespace enregistré automatiquement : $namespace");
+                } catch (\Throwable $e) {
+                    error_log("[Impulse] Erreur lors de la sauvegarde du namespace : " . $e->getMessage());
+                }
+            }
+        }
     }
 }
