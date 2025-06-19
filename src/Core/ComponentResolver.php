@@ -61,7 +61,12 @@ class ComponentResolver
         }
 
         try {
-            $component = new $componentClass($id);
+            $defaults = [];
+            if (func_num_args() > 1 && is_array(func_get_arg(1))) {
+                $defaults = func_get_arg(1);
+            }
+
+            $component = new $componentClass($id, $defaults);
             self::$componentCache->cache($id, $component);
             return $component;
         } catch (\Throwable $e) {

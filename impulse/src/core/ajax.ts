@@ -39,6 +39,11 @@ export function updateComponent(componentId: string, action: string, value?: str
     payload.value = value;
   }
 
+  const slotAttr = componentElement?.getAttribute('data-impulse-slot');
+  if (slotAttr) {
+    payload.slot = atob(slotAttr);
+  }
+
   fetch("impulse.php", {
     method: "POST",
     headers: {

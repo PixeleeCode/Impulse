@@ -3,5 +3,7 @@
 /vendor/
 /node_modules/
 /var/
+/public/insight-dumper-css/
+/public/insight-dumper-js/
 composer.lock
 package-lock.json

@@ -13,6 +13,8 @@ Impulse permet de créer des composants réactifs en PHP, faciles à intégrer d
 - [Instancier et afficher un composant](#instancier-et-afficher-un-composant)
 - [Lier le composant à l’interface](#lier-le-composant-à-linterface)
 - [Fragments et rendu partiel](#fragments-et-rendu-partiel)
+- [Utilisation de tags personnalisés pour les composants](#utilisation-de-tags-personnalisés-pour-les-composants)
+- [Slots : transmettre du contenu à un composant](#slots--transmettre-du-contenu-à-un-composant)
 - [Bonnes pratiques](#bonnes-pratiques)
 - [Aller plus loin](#aller-plus-loin)
 
@@ -227,6 +229,110 @@ Idéal pour les formulaires, les listes, les compteurs, etc.
 |:---------------------------|:--------------------------------------------------------:|
 | impulse:update="name"      |     DEMANDE au backend de rafraîchir la zone “name”      |
 | data-impulse-update="name" | INDIQUE dans le DOM que cette balise correspond à “name” |
+
+---
+
+## Utilisation de tags personnalisés pour les composants
+
+Impulse permet de déclarer des composants avec une balise personnalisée, ce qui rend le HTML plus lisible et intuitif 
+dans les templates imbriqués.
+
+### Insérer un composant dans un autre
+
+Par défaut, chaque composant peut être intégré dans un template de composant via un tag personnalisé dont le nom
+correspond à son, par exemple, le composant `MyCounter` pour être intégré comme ceci :
+```html
+<my-counter />
+```
+
+Si le composant possède des `states`, vous pouvez définir leurs valeurs via des attributs :
+```html
+<my-counter count="123" />
+```
+
+### Déclaration du tag
+
+Dans ton composant PHP, tu peux définir un nom de balise personnalisé avec la propriété publique `$tagName` :
+```php
+final class MyCounter extends Component
+{
+    public ?string $tagName = 'counter';
+
+    // ...
+}
+```
+
+Tu peux ensuite utiliser ce composant directement dans un autre composant ou template HTML :
+```html
+<counter /> <!-- et non <my-counter /> -->
+```
+
+> ⚠️ **Assure-toi que chaque composant avec une balise personnalisée possède bien un tagName unique.**
+
+---
+
+## Slots : transmettre du contenu à un composant
+
+Impulse prend en charge les slots, une fonctionnalité permettant d’injecter dynamiquement du contenu à l’intérieur 
+d’un composant depuis son parent.
+
+### Slot principal (slot par défaut)
+
+Le contenu placé entre les balises personnalisées d’un composant est automatiquement injecté dans la propriété `$slot`.
+```php
+public function template(): string
+{
+    return <<<HTML
+        <div class="card">
+            {$this->slot}
+        </div>
+    HTML;
+}
+```
+
+Utilisation :
+```html
+<card>
+    <p>Voici un contenu passé par slot</p>
+</card>
+```
+
+## Slots nommés
+
+Tu peux aussi définir plusieurs zones de slot en les nommant. Par exemple, pour une carte avec un en-tête et un 
+pied de page en utilisant la méthode `slot()` :
+```php
+public function template(): string
+{
+    return <<<HTML
+        <div class="card">
+            <header>{$this->slot('header')}</header>
+            <main>{$this->slot()}</main>
+            <footer>{$this->slot('footer')}</footer>
+        </div>
+    HTML;
+}
+```
+
+Utilisation :
+```html
+<card>
+    <header>
+        <h2>Mon en-tête</h2>
+    </header>
+
+    <p>Contenu principal de la carte</p>
+
+    <footer>
+        <small>Fin du contenu</small>
+    </footer>
+</card>
+```
+
+### Détails techniques
+* Le slot par défaut est disponible via `$this->slot()`, ou `$this->slot('__slot')`.
+* Les slots nommés sont extraits automatiquement en analysant le contenu du composant dans le DOM.
+* Si un slot nommé n'est pas fourni, le composant retournera une chaîne vide (`''`).
 
 ---
 

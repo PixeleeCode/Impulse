@@ -7,7 +7,7 @@ use Impulse\Core\Component;
 use Impulse\Core\ComponentResolver;
 use JetBrains\PhpStorm\NoReturn;
 
-class AjaxHandler
+class AjaxDispatcher
 {
     /**
      * Liste des méthodes interdites (toujours en minuscules pour la comparaison)
@@ -34,6 +34,8 @@ class AjaxHandler
 
     /**
      * @throws \JsonException
+     * @throws \ReflectionException
+     * @throws \DOMException
      */
     public function handle(): void
     {
@@ -77,7 +79,12 @@ class AjaxHandler
             $this->respondError("L'ID du composant est requis");
         }
 
-        $component = ComponentResolver::resolve($data['id']);
+        $defaults = [];
+        if (isset($data['slot'])) {
+            $defaults['__slot'] = $data['slot'];
+        }
+
+        $component = ComponentResolver::resolve($data['id'], $defaults);
         if (!$component) {
             $this->respondError("Composant non trouvé pour l'ID: {$data['id']}", 404);
         }
@@ -95,8 +102,7 @@ class AjaxHandler
                 $args = [];
 
                 if (preg_match('/^([a-zA-Z_]\w*)\((.*)\)$/', $rawAction, $matches)) {
-                    $method = $matches[1];
-                    $argsString = $matches[2];
+                    [$inutile, $method, $argsString] = $matches;
                     if (trim($argsString) !== '') {
                         $args = array_map('trim', explode(',', $argsString));
                         $args = array_map(static function ($value) {
@@ -191,8 +197,12 @@ class AjaxHandler
 
             if ($node) {
                 $fragmentHtml = '';
-                foreach ($node->childNodes as $child) {
-                    $fragmentHtml .= $dom->saveHTML($child);
+                if ($node->hasChildNodes()) {
+                    foreach ($node->childNodes as $child) {
+                        $fragmentHtml .= $dom->saveHTML($child);
+                    }
+                } else {
+                    $fragmentHtml = $dom->saveHTML($node);
                 }
 
                 header('Content-Type: application/json');

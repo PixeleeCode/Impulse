@@ -11,8 +11,18 @@ abstract class Component implements ComponentInterface
 {
     private string $id;
 
-    /** @var array<int, mixed> */
+    /**
+     * @var array<int, mixed>
+     */
+    private array $namedSlots = [];
+
+    public ?string $tagName = null;
+
+    /**
+     * @var array<int, mixed>
+     */
     protected array $defaults = [];
+    protected string $slot = '';
 
     protected MethodCollection $methods;
     protected StateCollection $stateCache;
@@ -21,6 +31,7 @@ abstract class Component implements ComponentInterface
     {
         $this->id = $id;
         $this->defaults = $defaults;
+        $this->slot = $defaults['__slot'] ?? '';
         $this->methods = new MethodCollection();
         $this->stateCache = new StateCollection();
 
@@ -53,13 +64,15 @@ abstract class Component implements ComponentInterface
     /**
      * Rend le composant avec conteneur data-impulse-id et data-states (automatique pour AJAX)
      * @throws \JsonException
+     * @throws \ReflectionException|\DOMException
      */
     public function render(): string
     {
         $id = $this->getId();
         $dataStates = htmlspecialchars(json_encode($this->getStates(), JSON_THROW_ON_ERROR), ENT_QUOTES, 'UTF-8');
 
-        $template = $this->template();
+        $parser = new ComponentHtmlTransformer();
+        $template = $parser->process($this->template());
 
         if (trim($template) !== '') {
             $content = $template;
@@ -69,16 +82,16 @@ abstract class Component implements ComponentInterface
             throw new \RuntimeException("Aucun contenu HTML ni moteur de template n’est disponible pour ce composant.");
         }
 
+        $slotEncoded = base64_encode($this->slot);
+        $slotAttr = $slotEncoded ? ' data-impulse-slot="' . htmlspecialchars($slotEncoded, ENT_QUOTES) . '"' : '';
+
         return <<<HTML
-            <div data-impulse-id="$id" data-states="$dataStates">
+            <div data-impulse-id="$id" data-states="$dataStates"$slotAttr>
                 {$content}
             </div>
         HTML;
     }
 
-    /**
-     * @throws \JsonException
-     */
     public function view(string $template, array $data = []): string
     {
         $renderer = ImpulseRenderer::get();
@@ -171,6 +184,26 @@ abstract class Component implements ComponentInterface
     public function getViewData(): array
     {
         return get_object_vars($this);
+    }
+
+    /**
+     * Définit un slot nommé dans le composant.
+     */
+    public function setSlot(string $name, string $content): void
+    {
+        $this->namedSlots[$name] = $content;
+    }
+
+    /**
+     * Récupère un slot nommé, ou le slot par défaut.
+     */
+    public function slot(string $name = '__slot'): string
+    {
+        if ($name === '__slot') {
+            return $this->slot;
+        }
+
+        return $this->namedSlots[$name] ?? '';
     }
 
     public function onBeforeAction(?string $method = null, array $args = []): void {}

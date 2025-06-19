@@ -37,9 +37,10 @@ class ImpulseFactory
      * @template T of Component
      * @param class-string<T> $componentClass
      * @param array<int, mixed> $defaults
+     * @param string|null $id
      * @return Component Instance du composant
      */
-    public static function create(string $componentClass, array $defaults = []): Component
+    public static function create(string $componentClass, array $defaults = [], ?string $id = null): Component
     {
         self::initializeInstances();
 
@@ -51,17 +52,19 @@ class ImpulseFactory
             throw new \InvalidArgumentException("La classe '$componentClass' n'est pas un composant valide");
         }
 
-        // Générer un ID incrémental basé sur le nom du composant
-        $reflection = new \ReflectionClass($componentClass);
-        $baseId = strtolower($reflection->getShortName());
+        if (!$id) {
+            // Générer un ID incrémental basé sur le nom du composant
+            $reflection = new \ReflectionClass($componentClass);
+            $baseId = strtolower($reflection->getShortName());
 
-        if (!isset(self::$classInstanceCounts[$baseId])) {
-            self::$classInstanceCounts[$baseId] = 1;
-        } else {
-            self::$classInstanceCounts[$baseId]++;
+            if (!isset(self::$classInstanceCounts[$baseId])) {
+                self::$classInstanceCounts[$baseId] = 1;
+            } else {
+                self::$classInstanceCounts[$baseId]++;
+            }
+
+            $id = $baseId . '_' . self::$classInstanceCounts[$baseId];
         }
-
-        $id = $baseId . '_' . self::$classInstanceCounts[$baseId];
 
         $component = new $componentClass($id, $defaults);
 
