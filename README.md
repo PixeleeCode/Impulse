@@ -50,6 +50,27 @@ final class HelloUser extends Component
             </div>
         HTML;
     }
+
+    public function style(): string
+    {
+        return <<<CSS
+            div {
+                font-family: sans-serif;
+                padding: 1rem;
+            }
+
+            input {
+                border: 1px solid #ccc;
+                padding: 0.5rem;
+                margin-bottom: 0.5rem;
+            }
+
+            p {
+                color: #0d9488;
+                font-weight: bold;
+            }
+        CSS;
+    }
 }
 ```
 
