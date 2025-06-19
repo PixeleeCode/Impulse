@@ -94,24 +94,6 @@ $livePreview = ImpulseFactory::create(LivePreview::class);
                 border-radius: 8px;
                 box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             }
-            .search-filter input {
-                padding: 0.5rem;
-                width: 70%;
-                border: 1px solid #ddd;
-                border-radius: 4px;
-                margin-right: 0.5rem;
-            }
-            .search-filter .results {
-                margin-top: 1rem;
-            }
-            .search-filter ul {
-                list-style-type: none;
-                padding: 0;
-            }
-            .search-filter li {
-                padding: 0.5rem;
-                border-bottom: 1px solid #eee;
-            }
 
             /* Styles pour le ColorPicker */
             .color-picker {
