@@ -67,15 +67,17 @@ class State implements StateInterface
 
     /**
      * Permet d'utiliser l'objet directement comme une chaîne
-     *
-     * @throws \JsonException
      */
     public function __toString(): string
     {
         $value = $this->get();
 
         if (is_array($value) || is_object($value)) {
-            return json_encode($value, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE) ?: '';
+            try {
+                return json_encode($value, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR) ?: '';
+            } catch (\JsonException) {
+                return '';
+            }
         }
 
         return (string) $value;
