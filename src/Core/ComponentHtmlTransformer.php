@@ -2,14 +2,16 @@
 
 namespace Impulse\Core;
 
+use Composer\Autoload\ClassLoader;
 use Impulse\ImpulseFactory;
+use ScssPhp\ScssPhp\Exception\SassException;
 
 class ComponentHtmlTransformer
 {
     /**
      * @throws \JsonException
      * @throws \ReflectionException
-     * @throws \DOMException
+     * @throws \DOMException|SassException
      */
     public function process(string $html): string
     {
@@ -119,41 +121,116 @@ class ComponentHtmlTransformer
         return $html;
     }
 
-    /**
-     * @throws \ReflectionException
-     */
     private function getComponentTags(): array
     {
         $components = [];
         $namespaces = Config::get('component_namespaces', []);
 
         foreach ($namespaces as $namespace) {
-            $directory = namespace_to_path($namespace);
+            // Assurez-vous que le namespace se termine par un séparateur
+            $namespace = rtrim($namespace, '\\') . '\\';
+
+            $directory = $this->namespaceToPath($namespace);
             if (!is_dir($directory)) {
                 continue;
             }
 
-            foreach (scandir($directory) as $file) {
-                if (!str_ends_with($file, '.php')) {
-                    continue;
-                }
+            // Filtrer directement les fichiers PHP
+            $phpFiles = glob($directory . '/*.php');
+            if ($phpFiles === false) {
+                continue;
+            }
 
+            foreach ($phpFiles as $filePath) {
+                $file = basename($filePath);
                 $className = $namespace . basename($file, '.php');
-                if (!class_exists($className)) {
-                    continue;
-                }
 
-                $reflection = new \ReflectionClass($className);
-                if ($reflection->isInstantiable()) {
-                    $instance = $reflection->newInstanceWithoutConstructor();
-                    $tagName = property_exists($instance, 'tagName') && is_string($instance->tagName)
-                        ? $instance->tagName
-                        : strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $reflection->getShortName()));
-                    $components[$tagName] = $className;
+                try {
+                    if (!class_exists($className)) {
+                        continue;
+                    }
+
+                    $reflection = new \ReflectionClass($className);
+
+                    // Vérifiez si c'est un composant valide (exemple)
+                    if (!$reflection->isSubclassOf(Component::class)) {
+                        continue;
+                    }
+
+                    if (!$reflection->isInstantiable()) {
+                        continue;
+                    }
+
+                    // Approche plus sûre pour accéder aux propriétés
+                    try {
+                        $instance = $reflection->newInstanceWithoutConstructor();
+
+                        // Vérifiez que tagName existe et est accessible
+                        $tagNameProperty = $reflection->hasProperty('tagName') ? $reflection->getProperty('tagName') : null;
+
+                        if ($tagNameProperty && $tagNameProperty->isPublic()) {
+                            $tagName = $tagNameProperty->getValue($instance);
+                            if (!is_string($tagName)) {
+                                $tagName = null;
+                            }
+                        } else {
+                            $tagName = null;
+                        }
+
+                        // Utilise le nom de la classe si tagName n'est pas disponible
+                        if ($tagName === null) {
+                            $tagName = strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $reflection->getShortName()));
+                        }
+
+                        $components[$tagName] = $className;
+                    } catch (\Throwable $e) {
+                        // Log l'erreur ou continue silencieusement
+                        continue;
+                    }
+                } catch (\Throwable $e) {
+                    // Gestion des erreurs de réflexion
+                    continue;
                 }
             }
         }
 
         return $components;
+    }
+
+    /**
+     * Convertit un namespace en chemin de fichier
+     */
+    private function namespaceToPath(string $namespace): ?string
+    {
+        $autoloaderFiles = [
+            __DIR__ . '/../../vendor/autoload.php',
+            __DIR__ . '/../../../autoload.php', // Si ce package est dans vendor
+            __DIR__ . '/../../../../autoload.php', // Si plus profond
+        ];
+
+        $loader = null;
+        if (!isset($loader) || !$loader instanceof ClassLoader) {
+            foreach ($autoloaderFiles as $file) {
+                if (file_exists($file)) {
+                    $loader = require $file;
+                    break;
+                }
+            }
+        }
+
+        if (!$loader) {
+            return null;
+        }
+
+        $prefixesPsr4 = $loader->getPrefixesPsr4();
+
+        foreach ($prefixesPsr4 as $prefix => $dirs) {
+            if (str_starts_with($namespace, $prefix)) {
+                $relative = str_replace('\\', '/', substr($namespace, strlen($prefix)));
+                return rtrim($dirs[0], '/') . '/' . $relative;
+            }
+        }
+
+        return null;
     }
 }
