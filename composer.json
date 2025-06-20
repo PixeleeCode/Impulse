@@ -9,9 +9,6 @@
     },
     "exclude-from-classmap": [
       "/tests/"
-    ],
-    "files": [
-      "src/Helpers/helpers.php"
     ]
   },
   "authors": [
